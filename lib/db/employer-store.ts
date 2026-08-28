@@ -1,4 +1,4 @@
-import { hashPassword, verifyPassword } from "@/lib/auth/password";
+import { hashPassword, hashPasswordSync, verifyPassword } from "@/lib/auth/password";
 import { UserRole, UserStatus, VerificationStatus } from "@/types";
 
 export interface CompanyRecord {
@@ -73,10 +73,10 @@ class EmployerStore {
     this.seedDefaultEmployer();
   }
 
-  private async seedDefaultEmployer() {
+  private seedDefaultEmployer() {
     const demoCompanyId = "company-demo-001";
     const demoEmployerId = "employer-demo-001";
-    const demoPasswordHash = await hashPassword("EmployerPass123!");
+    const demoPasswordHash = hashPasswordSync("EmployerPass123!");
 
     const demoCompany: CompanyRecord = {
       id: demoCompanyId,

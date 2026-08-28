@@ -2,7 +2,7 @@
 
 import { useState, useTransition, Suspense } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { candidateLoginAction } from "@/lib/actions/auth-actions";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,7 +10,6 @@ import { Input } from "@/components/ui/input";
 import { Briefcase, ArrowRight, Loader2, AlertCircle, KeyRound, CheckCircle2, Building2 } from "lucide-react";
 
 function LoginForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl");
 
@@ -34,10 +33,17 @@ function LoginForm() {
         setError(result.error);
       } else {
         setSuccessMessage("Signed in successfully! Redirecting...");
-        const target = callbackUrl || result.data.redirectUrl;
+        let target = result.data.redirectUrl;
+        if (callbackUrl) {
+          if (result.data.redirectUrl.startsWith("/e/") && !callbackUrl.startsWith("/c/")) {
+            target = callbackUrl;
+          } else if (result.data.redirectUrl.startsWith("/c/") && !callbackUrl.startsWith("/e/")) {
+            target = callbackUrl;
+          }
+        }
         setTimeout(() => {
-          router.push(target);
-        }, 500);
+          window.location.href = target;
+        }, 300);
       }
     });
   };

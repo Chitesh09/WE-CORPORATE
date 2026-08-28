@@ -3,6 +3,13 @@ import bcrypt from "bcryptjs";
 const SALT_ROUNDS = 10;
 
 /**
+ * Synchronous hash for instant seed initialization across serverless starts.
+ */
+export function hashPasswordSync(password: string): string {
+  return bcrypt.hashSync(password, SALT_ROUNDS);
+}
+
+/**
  * Hash a plain text password using bcrypt.
  */
 export async function hashPassword(password: string): Promise<string> {

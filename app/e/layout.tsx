@@ -37,8 +37,7 @@ export default async function EmployerLayout({
     redirect("/auth/login?callbackUrl=/e/dashboard");
   }
 
-  const companyData = await employerStore.getCompanyForEmployer(user.id);
-  const company = companyData?.company;
+  const { company } = await employerStore.ensureEmployerFromSession(user);
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-surface-canvas text-text-primary">

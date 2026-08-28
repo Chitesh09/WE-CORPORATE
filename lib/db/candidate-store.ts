@@ -1,4 +1,4 @@
-import { hashPassword, verifyPassword } from "@/lib/auth/password";
+import { hashPassword, hashPasswordSync, verifyPassword } from "@/lib/auth/password";
 import { UserRole, UserStatus, ApplicationStatus } from "@/types";
 import { DEVELOPMENT_JOBS } from "@/lib/db/seed-data";
 import { jobStore } from "@/lib/db/job-store";
@@ -133,9 +133,9 @@ class CandidateStore {
     this.seedDefaultCandidate();
   }
 
-  private async seedDefaultCandidate() {
+  private seedDefaultCandidate() {
     const demoId = "candidate-demo-001";
-    const demoPasswordHash = await hashPassword("CandidatePass123!");
+    const demoPasswordHash = hashPasswordSync("CandidatePass123!");
 
     const demoCandidate: CandidateUserRecord = {
       id: demoId,
