@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth/session";
+import { logoutAction } from "@/lib/actions/auth-actions";
 import { getPublicJobs } from "@/lib/services/job-service";
 import { JobCard } from "@/components/domains/jobs/job-card";
 import { JobSearchBar } from "@/components/domains/jobs/job-search-bar";
@@ -18,6 +19,7 @@ import {
   CheckCircle2,
   Lock,
   UserCheck,
+  LogOut,
 } from "lucide-react";
 
 export default async function HomePage() {
@@ -78,27 +80,40 @@ export default async function HomePage() {
                 </div>
               </div>
             ) : (
-              <div className="p-3.5 sm:p-4 rounded-xl bg-white/90 backdrop-blur-md border border-border-subtle shadow-xs max-w-lg mx-auto flex items-center justify-between gap-3">
+              <div className="p-3.5 sm:p-4 rounded-xl bg-white/90 backdrop-blur-md border border-border-subtle shadow-xs max-w-xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
                 <div className="text-left text-xs flex items-center gap-2">
                   <UserCheck className="h-4 w-4 text-brand-accent shrink-0" />
                   <div>
                     <span className="text-text-muted">Signed in as </span>
                     <strong className="text-brand-primary">{sessionUser.fullName}</strong>
+                    <span className="text-text-muted"> ({sessionUser.role})</span>
                   </div>
                 </div>
-                <Link
-                  href={
-                    sessionUser.role === "candidate"
-                      ? "/c/dashboard"
-                      : sessionUser.role === "employer"
-                      ? "/e/dashboard"
-                      : "/admin/dashboard"
-                  }
-                >
-                  <Button size="sm" variant="accent" className="text-xs font-semibold">
-                    Dashboard <ArrowRight className="h-3.5 w-3.5 ml-1" />
-                  </Button>
-                </Link>
+                <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+                  <Link
+                    href={
+                      sessionUser.role === "candidate"
+                        ? "/c/dashboard"
+                        : sessionUser.role === "employer"
+                        ? "/e/dashboard"
+                        : "/admin/dashboard"
+                    }
+                  >
+                    <Button size="sm" variant="accent" className="text-xs font-semibold">
+                      Dashboard <ArrowRight className="h-3.5 w-3.5 ml-1" />
+                    </Button>
+                  </Link>
+                  <form action={logoutAction}>
+                    <Button
+                      type="submit"
+                      variant="ghost"
+                      size="sm"
+                      className="text-xs font-semibold text-text-secondary hover:text-feedback-error-text hover:bg-feedback-error-bg/30"
+                    >
+                      <LogOut className="h-3.5 w-3.5 mr-1" /> Sign Out
+                    </Button>
+                  </form>
+                </div>
               </div>
             )}
 
