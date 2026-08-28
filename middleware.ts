@@ -1,6 +1,53 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { verifyJwtEdge } from "@/lib/auth/edge-jwt";
+
+interface JWTPayload {
+  userId: string;
+  email: string;
+  role: "candidate" | "employer" | "admin";
+  status: "active" | "suspended" | "pending";
+  exp?: number;
+}
+
+async function verifyJwtEdge(token: string, secret: string): Promise<JWTPayload | null> {
+  try {
+    const parts = token.split(".");
+    if (parts.length !== 3) return null;
+
+    const [headerB64, payloadB64, signatureB64] = parts;
+    const encoder = new TextEncoder();
+    const data = encoder.encode(`${headerB64}.${payloadB64}`);
+
+    const key = await crypto.subtle.importKey(
+      "raw",
+      encoder.encode(secret),
+      { name: "HMAC", hash: "SHA-256" },
+      false,
+      ["verify"]
+    );
+
+    const binarySignature = atob(signatureB64.replace(/-/g, "+").replace(/_/g, "/"));
+    const signatureBytes = new Uint8Array(binarySignature.length);
+    for (let i = 0; i < binarySignature.length; i++) {
+      signatureBytes[i] = binarySignature.charCodeAt(i);
+    }
+
+    const isValid = await crypto.subtle.verify("HMAC", key, signatureBytes, data);
+    if (!isValid) return null;
+
+    const decodedPayload = JSON.parse(
+      atob(payloadB64.replace(/-/g, "+").replace(/_/g, "/"))
+    );
+
+    if (decodedPayload.exp && decodedPayload.exp < Math.floor(Date.now() / 1000)) {
+      return null;
+    }
+
+    return decodedPayload as JWTPayload;
+  } catch {
+    return null;
+  }
+}
 
 const SESSION_COOKIE_NAME = "we_corporate_session";
 const SESSION_SECRET =
