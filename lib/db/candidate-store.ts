@@ -291,13 +291,16 @@ class CandidateStore {
     return newUser;
   }
 
-  async ensureCandidateFromSession(sessionUser: {
-    id: string;
-    email: string;
-    fullName: string;
-    role?: UserRole;
-    status?: UserStatus;
-  }): Promise<CandidateUserRecord> {
+  async ensureCandidateFromSession(
+    sessionUser: {
+      id: string;
+      email: string;
+      fullName: string;
+      role?: UserRole;
+      status?: UserStatus;
+    },
+    profileOverride?: Partial<CandidateProfileData> | null
+  ): Promise<CandidateUserRecord> {
     const normalizedEmail = sessionUser.email.toLowerCase().trim();
     let existing = this.users.get(normalizedEmail);
     if (!existing) {
@@ -313,6 +316,7 @@ class CandidateStore {
         profile: {
           skills: [],
           education: [],
+          ...(profileOverride || {}),
         },
       };
       this.users.set(normalizedEmail, existing);
@@ -320,8 +324,15 @@ class CandidateStore {
       if (existing.id !== sessionUser.id) {
         existing.id = sessionUser.id;
       }
-      if (!existing.fullName && sessionUser.fullName) {
+      if (sessionUser.fullName) {
         existing.fullName = sessionUser.fullName;
+      }
+      if (profileOverride) {
+        existing.profile = {
+          ...existing.profile,
+          ...profileOverride,
+          skills: Array.isArray(profileOverride.skills) ? profileOverride.skills : existing.profile.skills,
+        };
       }
     }
     return existing;

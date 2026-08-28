@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { requireCandidate } from "@/lib/auth/session";
-import { candidateStore } from "@/lib/db/candidate-store";
+import { requireCandidate, getCandidateProfileCookie } from "@/lib/auth/session";
+import { candidateStore, CandidateProfileData } from "@/lib/db/candidate-store";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -18,8 +18,10 @@ import {
 
 export default async function CandidateDashboardPage() {
   const user = await requireCandidate();
+  const profileCookie = (await getCandidateProfileCookie()) as CandidateProfileData | null;
+  const ensuredUser = await candidateStore.ensureCandidateFromSession(user, profileCookie);
 
-  const profileData = await candidateStore.getProfile(user.id);
+  const profileData = { user: ensuredUser, profile: ensuredUser.profile };
   const resumes = await candidateStore.getResumes(user.id);
   const savedJobs = await candidateStore.getSavedJobs(user.id);
   const applications = await candidateStore.getApplications(user.id);

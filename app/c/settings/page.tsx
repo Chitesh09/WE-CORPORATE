@@ -1,16 +1,13 @@
-import { requireCandidate } from "@/lib/auth/session";
-import { candidateStore } from "@/lib/db/candidate-store";
+import { requireCandidate, getCandidateProfileCookie } from "@/lib/auth/session";
+import { candidateStore, CandidateProfileData } from "@/lib/db/candidate-store";
 import { CandidateSettingsManager } from "@/components/domains/candidate/candidate-settings-manager";
 import { Badge } from "@/components/ui/badge";
 import { ShieldCheck } from "lucide-react";
 
 export default async function CandidateSettingsPage() {
   const sessionUser = await requireCandidate();
-  let candidateRecord = await candidateStore.findById(sessionUser.id);
-
-  if (!candidateRecord) {
-    candidateRecord = await candidateStore.ensureCandidateFromSession(sessionUser);
-  }
+  const profileCookie = (await getCandidateProfileCookie()) as CandidateProfileData | null;
+  const candidateRecord = await candidateStore.ensureCandidateFromSession(sessionUser, profileCookie);
 
   return (
     <div className="space-y-6">

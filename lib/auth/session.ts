@@ -72,12 +72,73 @@ export async function setSessionCookie(token: string): Promise<void> {
   });
 }
 
+export const CANDIDATE_PROFILE_COOKIE_NAME = "we_corporate_cand_prof";
+export const EMPLOYER_PROFILE_COOKIE_NAME = "we_corporate_emp_prof";
+
+/**
+ * Sets the HTTP-only, secure candidate profile snapshot cookie.
+ */
+export async function setCandidateProfileCookie(profile: unknown): Promise<void> {
+  const cookieStore = await cookies();
+  cookieStore.set(CANDIDATE_PROFILE_COOKIE_NAME, JSON.stringify(profile), {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: 30 * 24 * 60 * 60, // 30 days
+  });
+}
+
+/**
+ * Retrieves the candidate profile snapshot from the cookie.
+ */
+export async function getCandidateProfileCookie<T = Record<string, unknown>>(): Promise<T | null> {
+  const cookieStore = await cookies();
+  const raw = cookieStore.get(CANDIDATE_PROFILE_COOKIE_NAME)?.value;
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw) as T;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Sets the HTTP-only, secure employer company snapshot cookie.
+ */
+export async function setEmployerCompanyCookie(company: unknown): Promise<void> {
+  const cookieStore = await cookies();
+  cookieStore.set(EMPLOYER_PROFILE_COOKIE_NAME, JSON.stringify(company), {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: 30 * 24 * 60 * 60,
+  });
+}
+
+/**
+ * Retrieves the employer company snapshot from the cookie.
+ */
+export async function getEmployerCompanyCookie<T = Record<string, unknown>>(): Promise<T | null> {
+  const cookieStore = await cookies();
+  const raw = cookieStore.get(EMPLOYER_PROFILE_COOKIE_NAME)?.value;
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw) as T;
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Clears the session cookie on logout.
  */
 export async function clearSessionCookie(): Promise<void> {
   const cookieStore = await cookies();
   cookieStore.delete(SESSION_COOKIE_NAME);
+  cookieStore.delete(CANDIDATE_PROFILE_COOKIE_NAME);
+  cookieStore.delete(EMPLOYER_PROFILE_COOKIE_NAME);
 }
 
 /**

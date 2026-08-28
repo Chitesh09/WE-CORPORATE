@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { updateCandidateProfileAction } from "@/lib/actions/candidate-actions";
 import { CandidateUserRecord, CandidateProfileData } from "@/lib/db/candidate-store";
 import { Card, CardContent } from "@/components/ui/card";
@@ -14,6 +15,7 @@ interface CandidateProfileFormProps {
 }
 
 export function CandidateProfileForm({ user, profile }: CandidateProfileFormProps) {
+  const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [statusMessage, setStatusMessage] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
@@ -30,6 +32,21 @@ export function CandidateProfileForm({ user, profile }: CandidateProfileFormProp
   const [linkedinUrl, setLinkedinUrl] = useState(profile.linkedinUrl || "");
   const [githubUrl, setGithubUrl] = useState(profile.githubUrl || "");
   const [portfolioUrl, setPortfolioUrl] = useState(profile.portfolioUrl || "");
+
+  // Sync state if parent props change
+  useEffect(() => {
+    setFullName(user.fullName);
+    setHeadline(profile.headline || "");
+    setPhoneNumber(profile.phoneNumber || "");
+    setCity(profile.city || "");
+    setState(profile.state || "");
+    setExperienceLevel(profile.experienceLevel || "freshers");
+    setBio(profile.bio || "");
+    setSkills(profile.skills || []);
+    setLinkedinUrl(profile.linkedinUrl || "");
+    setGithubUrl(profile.githubUrl || "");
+    setPortfolioUrl(profile.portfolioUrl || "");
+  }, [user.fullName, profile]);
 
   const handleAddSkill = () => {
     const trimmed = newSkillInput.trim();
@@ -73,6 +90,20 @@ export function CandidateProfileForm({ user, profile }: CandidateProfileFormProp
         setStatusMessage({ type: "error", message: result.error });
       } else {
         setStatusMessage({ type: "success", message: "Your candidate profile was updated successfully." });
+        if (result.data) {
+          if (result.data.fullName) setFullName(result.data.fullName);
+          if (result.data.headline !== undefined) setHeadline(result.data.headline);
+          if (result.data.phoneNumber !== undefined) setPhoneNumber(result.data.phoneNumber);
+          if (result.data.city !== undefined) setCity(result.data.city);
+          if (result.data.state !== undefined) setState(result.data.state);
+          if (result.data.experienceLevel !== undefined) setExperienceLevel(result.data.experienceLevel);
+          if (result.data.bio !== undefined) setBio(result.data.bio);
+          if (result.data.skills !== undefined) setSkills(result.data.skills);
+          if (result.data.linkedinUrl !== undefined) setLinkedinUrl(result.data.linkedinUrl);
+          if (result.data.githubUrl !== undefined) setGithubUrl(result.data.githubUrl);
+          if (result.data.portfolioUrl !== undefined) setPortfolioUrl(result.data.portfolioUrl);
+        }
+        router.refresh();
       }
     });
   };

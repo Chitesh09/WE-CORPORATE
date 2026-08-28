@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { requireEmployer } from "@/lib/auth/session";
+import { requireEmployer, setEmployerCompanyCookie } from "@/lib/auth/session";
 import { employerStore, CompanyRecord } from "@/lib/db/employer-store";
 import { ActionResult } from "@/types";
 
@@ -105,6 +105,8 @@ export async function updateCompanyProfileAction(
       about: validated.data.about,
       publicContactEmail: validated.data.publicContactEmail || undefined,
     });
+
+    await setEmployerCompanyCookie(updated);
 
     revalidatePath("/e/company");
     revalidatePath("/e/dashboard");

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { requireEmployer } from "@/lib/auth/session";
+import { requireEmployer, getEmployerCompanyCookie } from "@/lib/auth/session";
 import { employerStore } from "@/lib/db/employer-store";
 import { CompanyProfileForm } from "@/components/domains/employer/company-profile-form";
 import { Button } from "@/components/ui/button";
@@ -8,13 +8,15 @@ import { Globe } from "lucide-react";
 
 export default async function EmployerCompanyPage() {
   const user = await requireEmployer();
+  const companyCookie = await getEmployerCompanyCookie();
+  await employerStore.ensureEmployerFromSession(user);
   const companyData = await employerStore.getCompanyForEmployer(user.id);
 
   if (!companyData) {
     notFound();
   }
 
-  const { company } = companyData;
+  const company = companyCookie ? { ...companyData.company, ...companyCookie } : companyData.company;
 
   return (
     <div className="space-y-6">

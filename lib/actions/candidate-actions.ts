@@ -2,7 +2,12 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { requireCandidate } from "@/lib/auth/session";
+import {
+  requireCandidate,
+  setCandidateProfileCookie,
+  createSessionToken,
+  setSessionCookie,
+} from "@/lib/auth/session";
 import { candidateStore, CandidateProfileData } from "@/lib/db/candidate-store";
 import { storageService } from "@/lib/storage";
 import { ActionResult } from "@/types";
@@ -65,7 +70,7 @@ const passwordChangeSchema = z.object({
 
 export async function updateCandidateProfileAction(
   data: Partial<CandidateProfileData> & { fullName?: string }
-): Promise<ActionResult> {
+): Promise<ActionResult<CandidateProfileData & { fullName: string }>> {
   try {
     const user = await requireCandidate();
 
@@ -78,12 +83,7 @@ export async function updateCandidateProfileAction(
       };
     }
 
-    // Ensure candidate record exists in store instance
-    await candidateStore.ensureCandidateFromSession(user);
-
-    await candidateStore.updateProfile(user.id, {
-      fullName: validated.data.fullName,
-      email: user.email,
+    const updatedProfile: CandidateProfileData = {
       headline: validated.data.headline || "",
       phoneNumber: validated.data.phoneNumber || "",
       city: validated.data.city || "",
@@ -94,14 +94,39 @@ export async function updateCandidateProfileAction(
       linkedinUrl: validated.data.linkedinUrl || undefined,
       githubUrl: validated.data.githubUrl || undefined,
       portfolioUrl: validated.data.portfolioUrl || undefined,
+    };
+
+    const newFullName = validated.data.fullName || user.fullName;
+
+    // 1. Persist updated profile in secure HTTP-only cookie
+    await setCandidateProfileCookie(updatedProfile);
+
+    // 2. Update session JWT cookie with new fullName
+    const updatedUser = {
+      ...user,
+      fullName: newFullName,
+    };
+    const newToken = await createSessionToken(updatedUser);
+    await setSessionCookie(newToken);
+
+    // 3. Update candidate in-memory store instance
+    await candidateStore.ensureCandidateFromSession(updatedUser, updatedProfile);
+    await candidateStore.updateProfile(user.id, {
+      fullName: newFullName,
+      email: user.email,
+      ...updatedProfile,
     });
 
     revalidatePath("/c/profile");
     revalidatePath("/c/dashboard");
+    revalidatePath("/c/settings");
 
     return {
       success: true,
-      data: null,
+      data: {
+        ...updatedProfile,
+        fullName: newFullName,
+      },
       message: "Profile updated successfully.",
     };
   } catch (err: unknown) {
