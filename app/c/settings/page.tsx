@@ -6,10 +6,10 @@ import { ShieldCheck } from "lucide-react";
 
 export default async function CandidateSettingsPage() {
   const sessionUser = await requireCandidate();
-  const candidateRecord = await candidateStore.findById(sessionUser.id);
+  let candidateRecord = await candidateStore.findById(sessionUser.id);
 
   if (!candidateRecord) {
-    throw new Error("Candidate account record not found.");
+    candidateRecord = await candidateStore.ensureCandidateFromSession(sessionUser);
   }
 
   return (

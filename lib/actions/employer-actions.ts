@@ -10,9 +10,34 @@ import { ActionResult } from "@/types";
 // 1. SCHEMAS
 // ==============================================================================
 
+const optionalUrl = z
+  .string()
+  .optional()
+  .transform((val) => {
+    if (!val) return "";
+    const trimmed = val.trim();
+    if (!trimmed) return "";
+    if (!/^https?:\/\//i.test(trimmed)) {
+      return `https://${trimmed}`;
+    }
+    return trimmed;
+  })
+  .refine(
+    (val) => {
+      if (!val) return true;
+      try {
+        const u = new URL(val);
+        return u.protocol === "http:" || u.protocol === "https:";
+      } catch {
+        return false;
+      }
+    },
+    { message: "Please enter a valid website URL." }
+  );
+
 const companyProfileSchema = z.object({
   name: z.string().min(2, "Company name must be at least 2 characters.").max(150),
-  websiteUrl: z.string().url("Invalid website URL format.").or(z.literal("")).optional(),
+  websiteUrl: optionalUrl,
   industry: z.string().min(2, "Industry is required.").max(100),
   companySize: z.string().min(2, "Company size is required."),
   headquartersCity: z.string().min(2, "Headquarters city is required."),
@@ -56,10 +81,11 @@ const employerPasswordChangeSchema = z.object({
 // ==============================================================================
 
 export async function updateCompanyProfileAction(
-  data: z.infer<typeof companyProfileSchema>
+  data: z.input<typeof companyProfileSchema>
 ): Promise<ActionResult<CompanyRecord>> {
   try {
     const user = await requireEmployer();
+    await employerStore.ensureEmployerFromSession(user);
 
     const validated = companyProfileSchema.safeParse(data);
     if (!validated.success) {

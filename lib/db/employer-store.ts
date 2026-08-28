@@ -180,6 +180,61 @@ class EmployerStore {
     return { user: newEmployer, company: newCompany };
   }
 
+  async ensureEmployerFromSession(sessionUser: {
+    id: string;
+    email: string;
+    fullName: string;
+    companyId?: string;
+    role?: UserRole;
+    status?: UserStatus;
+  }): Promise<{ user: EmployerUserRecord; company: CompanyRecord }> {
+    const normalizedEmail = sessionUser.email.toLowerCase().trim();
+    let existingUser = this.users.get(normalizedEmail);
+    const companyId = sessionUser.companyId || existingUser?.companyId || `company-${sessionUser.id}`;
+    let existingCompany = this.companies.get(companyId);
+
+    if (!existingCompany) {
+      existingCompany = {
+        id: companyId,
+        name: "Corporate Employer",
+        slug: `company-${Date.now()}`,
+        corporateDomain: normalizedEmail.split("@")[1] || "company.com",
+        companySize: "10-50 employees",
+        industry: "Technology / Software",
+        headquartersCity: "Bengaluru",
+        about: "Verified hiring partner on WE CORPORATE.",
+        verificationStatus: "unverified",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      this.companies.set(companyId, existingCompany);
+    }
+
+    if (!existingUser) {
+      existingUser = {
+        id: sessionUser.id,
+        email: normalizedEmail,
+        passwordHash: "",
+        fullName: sessionUser.fullName,
+        role: "employer",
+        status: sessionUser.status || "active",
+        companyId,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      this.users.set(normalizedEmail, existingUser);
+    } else {
+      if (existingUser.id !== sessionUser.id) {
+        existingUser.id = sessionUser.id;
+      }
+      if (sessionUser.companyId && existingUser.companyId !== sessionUser.companyId) {
+        existingUser.companyId = sessionUser.companyId;
+      }
+    }
+
+    return { user: existingUser, company: existingCompany };
+  }
+
   async findByEmail(email: string): Promise<EmployerUserRecord | null> {
     const normalizedEmail = email.toLowerCase().trim();
     return this.users.get(normalizedEmail) || null;
@@ -204,8 +259,23 @@ class EmployerStore {
     const user = await this.findById(userId);
     if (!user || user.role !== "employer") return null;
 
-    const company = this.companies.get(user.companyId);
-    if (!company) return null;
+    let company = this.companies.get(user.companyId);
+    if (!company) {
+      company = {
+        id: user.companyId,
+        name: "Corporate Employer",
+        slug: `company-${Date.now()}`,
+        corporateDomain: user.email.split("@")[1] || "company.com",
+        companySize: "10-50 employees",
+        industry: "Technology / Software",
+        headquartersCity: "Bengaluru",
+        about: "Verified hiring partner on WE CORPORATE.",
+        verificationStatus: "unverified",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      this.companies.set(user.companyId, company);
+    }
 
     return { company, user };
   }

@@ -291,6 +291,42 @@ class CandidateStore {
     return newUser;
   }
 
+  async ensureCandidateFromSession(sessionUser: {
+    id: string;
+    email: string;
+    fullName: string;
+    role?: UserRole;
+    status?: UserStatus;
+  }): Promise<CandidateUserRecord> {
+    const normalizedEmail = sessionUser.email.toLowerCase().trim();
+    let existing = this.users.get(normalizedEmail);
+    if (!existing) {
+      existing = {
+        id: sessionUser.id,
+        email: normalizedEmail,
+        passwordHash: "",
+        fullName: sessionUser.fullName,
+        role: "candidate",
+        status: sessionUser.status || "active",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        profile: {
+          skills: [],
+          education: [],
+        },
+      };
+      this.users.set(normalizedEmail, existing);
+    } else {
+      if (existing.id !== sessionUser.id) {
+        existing.id = sessionUser.id;
+      }
+      if (!existing.fullName && sessionUser.fullName) {
+        existing.fullName = sessionUser.fullName;
+      }
+    }
+    return existing;
+  }
+
   async findByEmail(email: string): Promise<CandidateUserRecord | null> {
     const normalizedEmail = email.toLowerCase().trim();
     return this.users.get(normalizedEmail) || null;
@@ -316,11 +352,35 @@ class CandidateStore {
     };
   }
 
-  async updateProfile(userId: string, data: Partial<CandidateProfileData> & { fullName?: string }): Promise<CandidateUserRecord> {
-    const user = await this.findById(userId);
+  async updateProfile(
+    userId: string,
+    data: Partial<CandidateProfileData> & { fullName?: string; email?: string }
+  ): Promise<CandidateUserRecord> {
+    let user = await this.findById(userId);
     if (!user) {
-      throw new Error("Candidate account not found.");
+      if (data.email) {
+        user = await this.findByEmail(data.email);
+      }
+      if (!user) {
+        const dummyEmail = data.email ? data.email.toLowerCase().trim() : `candidate-${userId}@wecorporate.in`;
+        user = {
+          id: userId,
+          email: dummyEmail,
+          passwordHash: "",
+          fullName: data.fullName || "Candidate",
+          role: "candidate",
+          status: "active",
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          profile: {
+            skills: [],
+            education: [],
+          },
+        };
+        this.users.set(dummyEmail, user);
+      }
     }
+
     if (user.status !== "active") {
       throw new Error("Account is suspended or inactive.");
     }
@@ -332,8 +392,8 @@ class CandidateStore {
     user.profile = {
       ...user.profile,
       ...data,
-      skills: Array.isArray(data.skills) ? data.skills : user.profile.skills,
-      education: Array.isArray(data.education) ? data.education : user.profile.education,
+      skills: Array.isArray(data.skills) ? data.skills : (user.profile.skills || []),
+      education: Array.isArray(data.education) ? data.education : (user.profile.education || []),
     };
 
     user.updatedAt = new Date().toISOString();

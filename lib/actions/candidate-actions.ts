@@ -11,6 +11,31 @@ import { ActionResult } from "@/types";
 // 1. SCHEMAS
 // ==============================================================================
 
+const optionalUrl = z
+  .string()
+  .optional()
+  .transform((val) => {
+    if (!val) return "";
+    const trimmed = val.trim();
+    if (!trimmed) return "";
+    if (!/^https?:\/\//i.test(trimmed)) {
+      return `https://${trimmed}`;
+    }
+    return trimmed;
+  })
+  .refine(
+    (val) => {
+      if (!val) return true;
+      try {
+        const u = new URL(val);
+        return u.protocol === "http:" || u.protocol === "https:";
+      } catch {
+        return false;
+      }
+    },
+    { message: "Please enter a valid website URL." }
+  );
+
 const profileSchema = z.object({
   fullName: z.string().min(2, "Full name must be at least 2 characters.").max(100),
   headline: z.string().max(200, "Headline too long.").optional(),
@@ -20,9 +45,9 @@ const profileSchema = z.object({
   experienceLevel: z.string().optional(),
   bio: z.string().max(2000, "Bio cannot exceed 2000 characters.").optional(),
   skills: z.array(z.string()).optional().default([]),
-  linkedinUrl: z.string().url("Invalid URL format.").or(z.literal("")).optional(),
-  githubUrl: z.string().url("Invalid URL format.").or(z.literal("")).optional(),
-  portfolioUrl: z.string().url("Invalid URL format.").or(z.literal("")).optional(),
+  linkedinUrl: optionalUrl,
+  githubUrl: optionalUrl,
+  portfolioUrl: optionalUrl,
 });
 
 const passwordChangeSchema = z.object({
@@ -46,21 +71,26 @@ export async function updateCandidateProfileAction(
 
     const validated = profileSchema.safeParse(data);
     if (!validated.success) {
+      const issue = validated.error.issues[0]?.message || "Validation failed. Please check your inputs.";
       return {
         success: false,
-        error: "Validation failed. Please check your inputs.",
+        error: issue,
       };
     }
 
+    // Ensure candidate record exists in store instance
+    await candidateStore.ensureCandidateFromSession(user);
+
     await candidateStore.updateProfile(user.id, {
       fullName: validated.data.fullName,
-      headline: validated.data.headline,
-      phoneNumber: validated.data.phoneNumber,
-      city: validated.data.city,
-      state: validated.data.state,
-      experienceLevel: validated.data.experienceLevel,
-      bio: validated.data.bio,
-      skills: validated.data.skills,
+      email: user.email,
+      headline: validated.data.headline || "",
+      phoneNumber: validated.data.phoneNumber || "",
+      city: validated.data.city || "",
+      state: validated.data.state || "",
+      experienceLevel: validated.data.experienceLevel || "freshers",
+      bio: validated.data.bio || "",
+      skills: validated.data.skills || [],
       linkedinUrl: validated.data.linkedinUrl || undefined,
       githubUrl: validated.data.githubUrl || undefined,
       portfolioUrl: validated.data.portfolioUrl || undefined,
