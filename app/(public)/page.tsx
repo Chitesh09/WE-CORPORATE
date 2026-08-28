@@ -1,9 +1,9 @@
 import { Suspense } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { getPublicJobs } from "@/lib/services/job-service";
 import { JobCard } from "@/components/domains/jobs/job-card";
 import { JobSearchBar } from "@/components/domains/jobs/job-search-bar";
+import { FloatingHeroBackground } from "@/components/domains/home/floating-hero-background";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -22,25 +22,15 @@ export default async function HomePage() {
   const { jobs: featuredJobs } = await getPublicJobs({ limit: 4 });
 
   return (
-    <div className="flex flex-col">
-      {/* 1. Hero Section with Background Image */}
-      <section className="relative overflow-hidden py-16 sm:py-24 border-b border-border-subtle">
-        {/* Background Image Container with Overlay */}
-        <div className="absolute inset-0 -z-10">
-          <Image
-            src="/images/hero-bg.jpg"
-            alt="Ambitious talent and graduates celebrating career milestones with certificates"
-            fill
-            priority
-            sizes="100vw"
-            className="object-cover object-center"
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-white/92 via-white/85 to-surface-canvas/95 backdrop-blur-[0.5px]" />
-        </div>
+    <div className="relative flex flex-col">
+      {/* Floating Parallax Background on Scroll */}
+      <FloatingHeroBackground />
 
+      {/* 1. Hero Section */}
+      <section className="relative overflow-hidden py-16 sm:py-24 border-b border-border-subtle bg-transparent">
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto space-y-6">
-            <div className="inline-flex items-center gap-2 rounded-full border border-border-strong bg-white/90 backdrop-blur-sm px-3.5 py-1 text-xs font-semibold text-text-secondary shadow-xs">
+            <div className="inline-flex items-center gap-2 rounded-full border border-border-strong bg-white/95 backdrop-blur-md px-3.5 py-1 text-xs font-semibold text-text-secondary shadow-xs">
               <ShieldCheck className="h-4 w-4 text-brand-accent" />
               <span>High-Trust Verified Career Portal</span>
             </div>
@@ -55,22 +45,22 @@ export default async function HomePage() {
 
             {/* Quick Search Strip */}
             <div className="pt-2 max-w-3xl mx-auto">
-              <Suspense fallback={<div className="h-14 w-full bg-surface-card rounded-lg border border-border-subtle animate-pulse" />}>
+              <Suspense fallback={<div className="h-14 w-full bg-white/95 backdrop-blur-md rounded-lg border border-border-subtle animate-pulse" />}>
                 <JobSearchBar />
               </Suspense>
             </div>
 
             {/* Trust Anchors */}
             <div className="pt-6 flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-xs">
-              <div className="flex items-center gap-1.5 font-semibold text-brand-primary bg-white/85 backdrop-blur-sm px-3 py-1 rounded-full border border-border-subtle shadow-xs">
+              <div className="flex items-center gap-1.5 font-semibold text-brand-primary bg-white/90 backdrop-blur-md px-3 py-1 rounded-full border border-border-subtle shadow-xs">
                 <CheckCircle2 className="h-4 w-4 text-brand-accent shrink-0" />
                 <span>100% Moderated Listings</span>
               </div>
-              <div className="flex items-center gap-1.5 font-semibold text-brand-primary bg-white/85 backdrop-blur-sm px-3 py-1 rounded-full border border-border-subtle shadow-xs">
+              <div className="flex items-center gap-1.5 font-semibold text-brand-primary bg-white/90 backdrop-blur-md px-3 py-1 rounded-full border border-border-subtle shadow-xs">
                 <CheckCircle2 className="h-4 w-4 text-brand-accent shrink-0" />
                 <span>Transparent INR Compensation</span>
               </div>
-              <div className="flex items-center gap-1.5 font-semibold text-brand-primary bg-white/85 backdrop-blur-sm px-3 py-1 rounded-full border border-border-subtle shadow-xs">
+              <div className="flex items-center gap-1.5 font-semibold text-brand-primary bg-white/90 backdrop-blur-md px-3 py-1 rounded-full border border-border-subtle shadow-xs">
                 <CheckCircle2 className="h-4 w-4 text-brand-accent shrink-0" />
                 <span>Verified Employer Portals</span>
               </div>
@@ -80,7 +70,7 @@ export default async function HomePage() {
       </section>
 
       {/* 2. Opportunity Tracks */}
-      <section className="py-12 border-b border-border-subtle bg-surface-card">
+      <section className="py-12 border-b border-border-subtle bg-white/80 backdrop-blur-md">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
             <div>
@@ -99,7 +89,7 @@ export default async function HomePage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <Link href="/jobs?type=full_time">
-              <Card className="hover:border-border-strong hover:shadow-md transition-all h-full cursor-pointer">
+              <Card className="bg-white/95 backdrop-blur-sm hover:border-border-strong hover:shadow-md transition-all h-full cursor-pointer">
                 <CardContent className="p-5 flex items-start gap-4">
                   <div className="p-3 rounded-md bg-surface-subtle text-brand-primary shrink-0">
                     <Briefcase className="h-5 w-5" />
@@ -115,7 +105,7 @@ export default async function HomePage() {
             </Link>
 
             <Link href="/internships">
-              <Card className="hover:border-border-strong hover:shadow-md transition-all h-full cursor-pointer">
+              <Card className="bg-white/95 backdrop-blur-sm hover:border-border-strong hover:shadow-md transition-all h-full cursor-pointer">
                 <CardContent className="p-5 flex items-start gap-4">
                   <div className="p-3 rounded-md bg-surface-subtle text-brand-primary shrink-0">
                     <GraduationCap className="h-5 w-5" />
@@ -131,7 +121,7 @@ export default async function HomePage() {
             </Link>
 
             <Link href="/career-services">
-              <Card className="hover:border-border-strong hover:shadow-md transition-all h-full cursor-pointer">
+              <Card className="bg-white/95 backdrop-blur-sm hover:border-border-strong hover:shadow-md transition-all h-full cursor-pointer">
                 <CardContent className="p-5 flex items-start gap-4">
                   <div className="p-3 rounded-md bg-surface-subtle text-brand-accent shrink-0">
                     <Sparkles className="h-5 w-5" />
@@ -147,7 +137,7 @@ export default async function HomePage() {
             </Link>
 
             <Link href="/connect/college">
-              <Card className="hover:border-border-strong hover:shadow-md transition-all h-full cursor-pointer">
+              <Card className="bg-white/95 backdrop-blur-sm hover:border-border-strong hover:shadow-md transition-all h-full cursor-pointer">
                 <CardContent className="p-5 flex items-start gap-4">
                   <div className="p-3 rounded-md bg-surface-subtle text-brand-primary shrink-0">
                     <Building2 className="h-5 w-5 text-brand-accent" />
@@ -166,7 +156,7 @@ export default async function HomePage() {
       </section>
 
       {/* 3. Featured Opportunities Feed */}
-      <section className="py-12 bg-surface-canvas">
+      <section className="py-12 bg-surface-canvas/80 backdrop-blur-sm">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-6">
           <div className="flex items-center justify-between">
             <div>
