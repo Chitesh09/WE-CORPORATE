@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { getPublicJobs } from "@/lib/services/job-service";
 import { JobCard } from "@/components/domains/jobs/job-card";
 import { JobSearchBar } from "@/components/domains/jobs/job-search-bar";
@@ -22,11 +23,24 @@ export default async function HomePage() {
 
   return (
     <div className="flex flex-col">
-      {/* 1. Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-surface-card via-surface-card to-surface-canvas py-16 sm:py-24 border-b border-border-subtle">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      {/* 1. Hero Section with Background Image */}
+      <section className="relative overflow-hidden py-16 sm:py-24 border-b border-border-subtle">
+        {/* Background Image Container with Overlay */}
+        <div className="absolute inset-0 -z-10">
+          <Image
+            src="/images/hero-bg.jpg"
+            alt="Ambitious talent and graduates celebrating career milestones with certificates"
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover object-center"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-white/92 via-white/85 to-surface-canvas/95 backdrop-blur-[0.5px]" />
+        </div>
+
+        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto space-y-6">
-            <div className="inline-flex items-center gap-2 rounded-full border border-border-strong bg-surface-card px-3.5 py-1 text-xs font-semibold text-text-secondary shadow-sm">
+            <div className="inline-flex items-center gap-2 rounded-full border border-border-strong bg-white/90 backdrop-blur-sm px-3.5 py-1 text-xs font-semibold text-text-secondary shadow-xs">
               <ShieldCheck className="h-4 w-4 text-brand-accent" />
               <span>High-Trust Verified Career Portal</span>
             </div>
@@ -35,7 +49,7 @@ export default async function HomePage() {
               Verified Jobs & Internships for Ambitious Talent in India
             </h1>
 
-            <p className="text-base sm:text-lg text-text-secondary leading-relaxed max-w-2xl mx-auto">
+            <p className="text-base sm:text-lg text-text-secondary leading-relaxed max-w-2xl mx-auto font-medium">
               Discover curated opportunities from verified employers. Transparent compensation brackets, zero recruiter spam, and direct 1-click application tracking.
             </p>
 
@@ -47,17 +61,17 @@ export default async function HomePage() {
             </div>
 
             {/* Trust Anchors */}
-            <div className="pt-6 flex flex-wrap items-center justify-center gap-6 text-xs text-text-muted">
-              <div className="flex items-center gap-1.5 font-medium text-text-secondary">
-                <CheckCircle2 className="h-4 w-4 text-brand-accent" />
+            <div className="pt-6 flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-xs">
+              <div className="flex items-center gap-1.5 font-semibold text-brand-primary bg-white/85 backdrop-blur-sm px-3 py-1 rounded-full border border-border-subtle shadow-xs">
+                <CheckCircle2 className="h-4 w-4 text-brand-accent shrink-0" />
                 <span>100% Moderated Listings</span>
               </div>
-              <div className="flex items-center gap-1.5 font-medium text-text-secondary">
-                <CheckCircle2 className="h-4 w-4 text-brand-accent" />
+              <div className="flex items-center gap-1.5 font-semibold text-brand-primary bg-white/85 backdrop-blur-sm px-3 py-1 rounded-full border border-border-subtle shadow-xs">
+                <CheckCircle2 className="h-4 w-4 text-brand-accent shrink-0" />
                 <span>Transparent INR Compensation</span>
               </div>
-              <div className="flex items-center gap-1.5 font-medium text-text-secondary">
-                <CheckCircle2 className="h-4 w-4 text-brand-accent" />
+              <div className="flex items-center gap-1.5 font-semibold text-brand-primary bg-white/85 backdrop-blur-sm px-3 py-1 rounded-full border border-border-subtle shadow-xs">
+                <CheckCircle2 className="h-4 w-4 text-brand-accent shrink-0" />
                 <span>Verified Employer Portals</span>
               </div>
             </div>
