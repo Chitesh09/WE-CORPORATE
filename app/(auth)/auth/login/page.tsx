@@ -70,32 +70,32 @@ function LoginForm() {
 
         {/* Demo Credentials Quick Pill for Testing */}
         <div className="p-3 rounded-lg bg-surface-subtle border border-border-subtle space-y-2 text-xs">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1.5 text-text-secondary font-medium">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-1.5 text-text-secondary font-medium min-w-0">
               <KeyRound className="h-3.5 w-3.5 text-brand-accent shrink-0" />
-              <span>Candidate Demo: rahul.sharma@example.com</span>
+              <span className="truncate">Candidate: rahul.sharma@example.com</span>
             </div>
             <Button
               type="button"
               variant="outline"
               size="sm"
               onClick={fillCandidateDemo}
-              className="text-[10px] h-6 px-2 bg-white border-border-strong font-semibold"
+              className="text-[10px] h-6 px-2 bg-white border-border-strong font-semibold shrink-0"
             >
               Fill Candidate
             </Button>
           </div>
-          <div className="flex items-center justify-between pt-1 border-t border-border-subtle">
-            <div className="flex items-center gap-1.5 text-text-secondary font-medium">
+          <div className="flex items-center justify-between gap-2 pt-1 border-t border-border-subtle">
+            <div className="flex items-center gap-1.5 text-text-secondary font-medium min-w-0">
               <Building2 className="h-3.5 w-3.5 text-brand-accent shrink-0" />
-              <span>Employer Demo: recruiter@razorpay.com</span>
+              <span className="truncate">Employer: recruiter@razorpay.com</span>
             </div>
             <Button
               type="button"
               variant="outline"
               size="sm"
               onClick={fillEmployerDemo}
-              className="text-[10px] h-6 px-2 bg-white border-border-strong font-semibold"
+              className="text-[10px] h-6 px-2 bg-white border-border-strong font-semibold shrink-0"
             >
               Fill Employer
             </Button>

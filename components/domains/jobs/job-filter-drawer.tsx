@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -40,18 +40,22 @@ export function JobFilterDrawer({ activeCount, metadata }: JobFilterDrawerProps)
     setIsOpen(false);
   };
 
-  // Close on Escape key press
-  useState(() => {
-    if (typeof window !== "undefined") {
-      const handleKeyDown = (e: KeyboardEvent) => {
-        if (e.key === "Escape" && isOpen) {
-          setIsOpen(false);
-        }
-      };
+  // Close on Escape key press and lock background scroll when open
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && isOpen) {
+        setIsOpen(false);
+      }
+    };
+    if (isOpen) {
       window.addEventListener("keydown", handleKeyDown);
-      return () => window.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = "hidden";
     }
-  });
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = "unset";
+    };
+  }, [isOpen]);
 
   return (
     <div className="lg:hidden">

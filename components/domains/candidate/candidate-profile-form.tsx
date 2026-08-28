@@ -337,7 +337,7 @@ export function CandidateProfileForm({ user, profile }: CandidateProfileFormProp
         <Button
           type="submit"
           disabled={isPending}
-          className="px-6 h-11 text-xs font-bold flex items-center gap-2"
+          className="w-full sm:w-auto px-6 h-11 text-xs font-bold flex items-center justify-center gap-2"
         >
           {isPending ? (
             <>
