@@ -2,11 +2,12 @@ import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getPublicJobBySlug, getRelatedJobs } from "@/lib/services/job-service";
-import { getCurrentUser } from "@/lib/auth/session";
+import { getCurrentUser, getCandidateProfileCookie } from "@/lib/auth/session";
 import { candidateStore, CandidateResumeRecord, CandidateProfileData } from "@/lib/db/candidate-store";
 import { JobCard } from "@/components/domains/jobs/job-card";
 import { JobShareButton } from "@/components/domains/jobs/job-share-button";
 import { JobSaveButton } from "@/components/domains/jobs/job-save-button";
+import { JobSkillMatch } from "@/components/domains/jobs/job-skill-match";
 import { ApplyModal } from "@/components/domains/applications/apply-modal";
 import { JobJsonLd } from "@/components/domains/jobs/job-jsonld";
 import { Card, CardContent } from "@/components/ui/card";
@@ -20,6 +21,7 @@ import {
   CheckCircle2,
   Sparkles,
   ArrowLeft,
+  Clock,
 } from "lucide-react";
 
 interface JobDetailPageProps {
@@ -56,6 +58,7 @@ export default async function JobDetailPage({ params }: JobDetailPageProps) {
   }
 
   const currentUser = await getCurrentUser();
+  const profileCookie = (await getCandidateProfileCookie()) as CandidateProfileData | null;
   const isSaved = currentUser ? await candidateStore.isJobSaved(currentUser.id, job.id) : false;
   const alreadyApplied = currentUser ? await candidateStore.hasCandidateApplied(currentUser.id, job.id) : false;
 
@@ -64,7 +67,9 @@ export default async function JobDetailPage({ params }: JobDetailPageProps) {
 
   if (currentUser) {
     const profileRecord = await candidateStore.getProfile(currentUser.id);
-    candidateProfile = profileRecord?.profile || null;
+    candidateProfile = profileCookie
+      ? { ...(profileRecord?.profile || {}), ...profileCookie }
+      : profileRecord?.profile || null;
     candidateResumes = await candidateStore.getResumes(currentUser.id);
   }
 
@@ -107,6 +112,15 @@ export default async function JobDetailPage({ params }: JobDetailPageProps) {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
         {/* Left 2 Columns: Comprehensive Job Content */}
         <div className="lg:col-span-2 space-y-6">
+          {/* AI Skill Match Widget for Authenticated Candidates */}
+          {currentUser && (
+            <JobSkillMatch
+              candidateSkills={candidateProfile?.skills || []}
+              requiredSkills={job.skills || []}
+              candidateName={currentUser.fullName}
+            />
+          )}
+
           <Card className="border border-border-subtle shadow-sm bg-surface-card rounded-lg overflow-hidden">
             <CardContent className="p-6 sm:p-8 space-y-6">
               {/* Header: Company & Title */}
@@ -303,8 +317,14 @@ export default async function JobDetailPage({ params }: JobDetailPageProps) {
                 alreadyApplied={alreadyApplied}
               />
 
+              {/* Recruiter Responsiveness Badge */}
+              <div className="flex items-center gap-2 p-2.5 rounded-md bg-surface-subtle text-xs text-text-secondary border border-border-subtle">
+                <Clock className="h-4 w-4 text-brand-accent shrink-0" />
+                <span><strong className="text-brand-primary">Active Recruiter:</strong> Typically reviews applications within 48 hours</span>
+              </div>
+
               {/* Secondary Bookmark & Share */}
-              <div className="grid grid-cols-2 gap-2 pt-2">
+              <div className="grid grid-cols-2 gap-2 pt-1">
                 <JobSaveButton
                   jobId={job.id}
                   initialIsSaved={isSaved}

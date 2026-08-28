@@ -125,6 +125,70 @@ export function CandidateApplicationTracker({ applications }: CandidateApplicati
                 </div>
               </div>
 
+              {/* Visual Application Milestone Stepper */}
+              <div className="p-3.5 rounded-lg bg-surface-subtle border border-border-subtle space-y-2">
+                <div className="flex items-center justify-between text-[11px] font-semibold text-text-secondary">
+                  <span>Application Progress Timeline</span>
+                  <span className="text-text-muted font-normal">
+                    {app.status === "hired"
+                      ? "Offer Accepted / Hired"
+                      : app.status === "not_selected"
+                      ? "Process Concluded"
+                      : app.status === "shortlisted"
+                      ? "Shortlisted for Interview"
+                      : app.status === "under_review"
+                      ? "Resume Screened by Recruiter"
+                      : "Application Received"}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-4 gap-2 pt-1">
+                  {[
+                    { key: "applied", label: "1. Submitted", activeIndex: 0 },
+                    { key: "under_review", label: "2. Under Review", activeIndex: 1 },
+                    { key: "shortlisted", label: "3. Shortlisted", activeIndex: 2 },
+                    { key: "hired", label: "4. Decision", activeIndex: 3 },
+                  ].map((stage) => {
+                    const currentIdx =
+                      app.status === "applied"
+                        ? 0
+                        : app.status === "under_review"
+                        ? 1
+                        : app.status === "shortlisted"
+                        ? 2
+                        : 3;
+                    const isCompleted = currentIdx >= stage.activeIndex;
+                    const isCurrent = currentIdx === stage.activeIndex;
+                    const isRejected = app.status === "not_selected" && stage.activeIndex === 3;
+
+                    return (
+                      <div key={stage.key} className="space-y-1.5">
+                        <div
+                          className={`h-1.5 rounded-full transition-all ${
+                            isRejected
+                              ? "bg-feedback-error-text"
+                              : isCompleted
+                              ? "bg-brand-accent"
+                              : "bg-border-subtle"
+                          }`}
+                        />
+                        <span
+                          className={`block text-[10px] truncate ${
+                            isCurrent
+                              ? "font-bold text-brand-primary"
+                              : isCompleted
+                              ? "text-text-secondary font-medium"
+                              : "text-text-muted"
+                          }`}
+                        >
+                          {stage.label}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
               {/* Summary Strip: Attached Resume Snapshot */}
               <div className="flex flex-wrap items-center justify-between gap-3 text-xs">
                 <div className="flex items-center gap-2 text-text-secondary">
