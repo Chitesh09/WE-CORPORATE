@@ -1,0 +1,58 @@
+# ==============================================================================
+# WE CORPORATE — PRODUCTION GITIGNORE
+# ==============================================================================
+
+# Dependencies
+node_modules/
+/.pnp
+.pnp.js
+.yarn/install-state.gz
+
+# Next.js Build & Outputs
+.next/
+out/
+build/
+dist/
+
+# Testing & Coverage
+coverage/
+*.lcov
+
+# Environment Variables & Secrets
+.env
+.env.*
+.env*.local
+!.env.example
+
+# Certificates & Private Keys
+*.pem
+*.key
+*.crt
+*.pfx
+*.p12
+
+# TypeScript & Build Caches
+*.tsbuildinfo
+next-env.d.ts
+
+# Vercel Project State
+.vercel/
+
+# Debug Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Operating System & IDE Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo

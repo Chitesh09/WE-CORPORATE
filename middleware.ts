@@ -1,0 +1,77 @@
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { verifyJwtEdge } from "@/lib/auth/edge-jwt";
+
+const SESSION_COOKIE_NAME = "we_corporate_session";
+const SESSION_SECRET =
+  process.env.NEXTAUTH_SECRET || "we-corporate-secure-development-secret-key-32-bytes";
+
+export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  // 1. Protect Candidate Surface (/c/*)
+  if (pathname.startsWith("/c")) {
+    const sessionCookie = request.cookies.get(SESSION_COOKIE_NAME);
+
+    if (!sessionCookie?.value) {
+      const loginUrl = new URL("/auth/login", request.url);
+      loginUrl.searchParams.set("callbackUrl", pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+
+    const payload = await verifyJwtEdge(sessionCookie.value, SESSION_SECRET);
+
+    if (!payload || payload.role !== "candidate" || payload.status === "suspended") {
+      const loginUrl = new URL("/auth/login", request.url);
+      loginUrl.searchParams.set("callbackUrl", pathname);
+      loginUrl.searchParams.set("error", "CandidateAccessRequired");
+      return NextResponse.redirect(loginUrl);
+    }
+  }
+
+  // 2. Protect Employer Surface (/e/*)
+  if (pathname.startsWith("/e")) {
+    const sessionCookie = request.cookies.get(SESSION_COOKIE_NAME);
+
+    if (!sessionCookie?.value) {
+      const loginUrl = new URL("/auth/login", request.url);
+      loginUrl.searchParams.set("callbackUrl", pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+
+    const payload = await verifyJwtEdge(sessionCookie.value, SESSION_SECRET);
+
+    if (!payload || payload.role !== "employer" || payload.status === "suspended") {
+      const loginUrl = new URL("/auth/login", request.url);
+      loginUrl.searchParams.set("callbackUrl", pathname);
+      loginUrl.searchParams.set("error", "EmployerAccessRequired");
+      return NextResponse.redirect(loginUrl);
+    }
+  }
+
+  // 3. Protect Admin Surface (/admin/*)
+  if (pathname.startsWith("/admin")) {
+    const sessionCookie = request.cookies.get(SESSION_COOKIE_NAME);
+
+    if (!sessionCookie?.value) {
+      const loginUrl = new URL("/auth/login", request.url);
+      loginUrl.searchParams.set("callbackUrl", pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+
+    const payload = await verifyJwtEdge(sessionCookie.value, SESSION_SECRET);
+
+    if (!payload || payload.role !== "admin" || payload.status === "suspended") {
+      const loginUrl = new URL("/auth/login", request.url);
+      loginUrl.searchParams.set("callbackUrl", pathname);
+      loginUrl.searchParams.set("error", "AdminAccessRequired");
+      return NextResponse.redirect(loginUrl);
+    }
+  }
+
+  return NextResponse.next();
+}
+
+export const config = {
+  matcher: ["/c/:path*", "/e/:path*", "/admin/:path*"],
+};
