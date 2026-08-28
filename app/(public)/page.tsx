@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import Link from "next/link";
+import { getCurrentUser } from "@/lib/auth/session";
 import { getPublicJobs } from "@/lib/services/job-service";
 import { JobCard } from "@/components/domains/jobs/job-card";
 import { JobSearchBar } from "@/components/domains/jobs/job-search-bar";
@@ -15,9 +16,12 @@ import {
   Sparkles,
   Building2,
   CheckCircle2,
+  Lock,
+  UserCheck,
 } from "lucide-react";
 
 export default async function HomePage() {
+  const sessionUser = await getCurrentUser();
   // Fetch recent verified jobs for featured section
   const { jobs: featuredJobs } = await getPublicJobs({ limit: 4 });
 
@@ -26,8 +30,8 @@ export default async function HomePage() {
       {/* Floating Parallax Background on Scroll */}
       <FloatingHeroBackground />
 
-      {/* 1. Hero Section */}
-      <section className="relative overflow-hidden py-16 sm:py-24 border-b border-border-subtle bg-transparent">
+      {/* 1. Hero Section with Auth Gate at the Start */}
+      <section className="relative overflow-hidden py-12 sm:py-20 border-b border-border-subtle bg-transparent">
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto space-y-6">
             <div className="inline-flex items-center gap-2 rounded-full border border-border-strong bg-white/95 backdrop-blur-md px-3.5 py-1 text-xs font-semibold text-text-secondary shadow-xs">
@@ -35,23 +39,78 @@ export default async function HomePage() {
               <span>High-Trust Verified Career Portal</span>
             </div>
 
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-brand-primary leading-tight">
+            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-brand-primary leading-tight">
               Verified Jobs & Internships for Ambitious Talent in India
             </h1>
 
-            <p className="text-base sm:text-lg text-text-secondary leading-relaxed max-w-2xl mx-auto font-medium">
+            <p className="text-sm sm:text-base text-text-secondary leading-relaxed max-w-2xl mx-auto font-medium">
               Discover curated opportunities from verified employers. Transparent compensation brackets, zero recruiter spam, and direct 1-click application tracking.
             </p>
 
+            {/* Authentication Gate at the Start of Website */}
+            {!sessionUser ? (
+              <div className="p-5 sm:p-6 rounded-2xl bg-white/95 backdrop-blur-md border border-border-strong shadow-md max-w-xl mx-auto space-y-3.5">
+                <div className="space-y-1 text-center">
+                  <div className="inline-flex items-center gap-1.5 text-xs font-bold text-brand-primary">
+                    <Lock className="h-3.5 w-3.5 text-brand-accent" />
+                    <span>Member Access & Registration</span>
+                  </div>
+                  <p className="text-xs text-text-secondary">
+                    Please log in or register first to search jobs, apply, and avail career services.
+                  </p>
+                </div>
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-2.5 pt-1">
+                  <Link href="/auth/signup" className="w-full sm:w-auto">
+                    <Button variant="default" size="sm" className="w-full sm:w-auto text-xs font-semibold px-4">
+                      Register as Candidate <ArrowRight className="h-3.5 w-3.5 ml-1" />
+                    </Button>
+                  </Link>
+                  <Link href="/auth/login" className="w-full sm:w-auto">
+                    <Button variant="outline" size="sm" className="w-full sm:w-auto text-xs font-semibold px-4">
+                      Sign In
+                    </Button>
+                  </Link>
+                  <Link href="/auth/employer/signup" className="w-full sm:w-auto">
+                    <Button variant="ghost" size="sm" className="w-full sm:w-auto text-xs font-semibold text-brand-accent hover:text-brand-accent-hover">
+                      For Employers
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            ) : (
+              <div className="p-3.5 sm:p-4 rounded-xl bg-white/90 backdrop-blur-md border border-border-subtle shadow-xs max-w-lg mx-auto flex items-center justify-between gap-3">
+                <div className="text-left text-xs flex items-center gap-2">
+                  <UserCheck className="h-4 w-4 text-brand-accent shrink-0" />
+                  <div>
+                    <span className="text-text-muted">Signed in as </span>
+                    <strong className="text-brand-primary">{sessionUser.fullName}</strong>
+                  </div>
+                </div>
+                <Link
+                  href={
+                    sessionUser.role === "candidate"
+                      ? "/c/dashboard"
+                      : sessionUser.role === "employer"
+                      ? "/e/dashboard"
+                      : "/admin/dashboard"
+                  }
+                >
+                  <Button size="sm" variant="accent" className="text-xs font-semibold">
+                    Dashboard <ArrowRight className="h-3.5 w-3.5 ml-1" />
+                  </Button>
+                </Link>
+              </div>
+            )}
+
             {/* Quick Search Strip */}
-            <div className="pt-2 max-w-3xl mx-auto">
+            <div className="pt-1 max-w-3xl mx-auto">
               <Suspense fallback={<div className="h-14 w-full bg-white/95 backdrop-blur-md rounded-lg border border-border-subtle animate-pulse" />}>
                 <JobSearchBar />
               </Suspense>
             </div>
 
             {/* Trust Anchors */}
-            <div className="pt-6 flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-xs">
+            <div className="pt-4 flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-xs">
               <div className="flex items-center gap-1.5 font-semibold text-brand-primary bg-white/90 backdrop-blur-md px-3 py-1 rounded-full border border-border-subtle shadow-xs">
                 <CheckCircle2 className="h-4 w-4 text-brand-accent shrink-0" />
                 <span>100% Moderated Listings</span>

@@ -1,19 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Image from "next/image";
 
 export function FloatingHeroBackground() {
   const [scrollY, setScrollY] = useState(0);
-  const [isMobile, setIsMobile] = useState(false);
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 640);
-    };
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-
     let ticking = false;
     const handleScroll = () => {
       if (!ticking) {
@@ -25,43 +18,54 @@ export function FloatingHeroBackground() {
       }
     };
 
+    const handleMouseMove = (e: MouseEvent) => {
+      setMousePos({
+        x: (e.clientX / window.innerWidth - 0.5) * 35,
+        y: (e.clientY / window.innerHeight - 0.5) * 35,
+      });
+    };
+
     window.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("mousemove", handleMouseMove, { passive: true });
+
     return () => {
-      window.removeEventListener("resize", checkMobile);
       window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("mousemove", handleMouseMove);
     };
   }, []);
 
-  // Responsive floating parallax offset
-  const translateY = isMobile
-    ? Math.min(Math.max(scrollY * 0.08, 0), 40)
-    : Math.min(Math.max(scrollY * 0.15, 0), 100);
-
-  const scale = isMobile
-    ? 1.01
-    : 1.04 + Math.min(scrollY * 0.0002, 0.06);
+  // Parallax translation coordinates for glowing ambient orbs
+  const translateY1 = Math.min(scrollY * 0.16, 120);
+  const translateY2 = Math.min(scrollY * 0.1, 80);
+  const translateY3 = Math.min(scrollY * 0.22, 150);
 
   return (
-    <div className="fixed inset-0 pointer-events-none -z-10 overflow-hidden select-none">
-      {/* Floating Image Layer with Responsive Height and Object Fit */}
+    <div className="fixed inset-0 pointer-events-none -z-10 overflow-hidden select-none bg-surface-canvas">
+      {/* Ambient Floating Gradient Mesh Orbs with Hover & Scroll Parallax */}
       <div
-        className="absolute top-0 left-0 right-0 h-[420px] sm:h-full w-full will-change-transform transition-transform duration-100 ease-out"
+        className="absolute -top-[12%] left-[8%] w-[450px] sm:w-[650px] h-[450px] sm:h-[650px] rounded-full bg-gradient-to-br from-brand-accent/15 via-teal-200/10 to-transparent blur-3xl will-change-transform transition-transform duration-300 ease-out"
         style={{
-          transform: `translate3d(0, -${translateY}px, 0) scale(${scale})`,
+          transform: `translate3d(${mousePos.x * 0.8}px, ${-translateY1 + mousePos.y * 0.8}px, 0)`,
         }}
-      >
-        <Image
-          src="/images/hero-bg.jpg"
-          alt="Ambitious talent and graduates celebrating career milestones"
-          fill
-          priority
-          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 100vw"
-          className="object-cover object-[center_15%] sm:object-center filter brightness-[1.02]"
-        />
-      </div>
+      />
+      <div
+        className="absolute top-[18%] -right-[8%] w-[400px] sm:w-[600px] h-[400px] sm:h-[600px] rounded-full bg-gradient-to-bl from-blue-400/10 via-sky-300/15 to-transparent blur-3xl will-change-transform transition-transform duration-300 ease-out"
+        style={{
+          transform: `translate3d(${-mousePos.x * 0.6}px, ${-translateY2 - mousePos.y * 0.6}px, 0)`,
+        }}
+      />
+      <div
+        className="absolute top-[55%] left-[20%] w-[350px] sm:w-[550px] h-[350px] sm:h-[550px] rounded-full bg-gradient-to-tr from-emerald-300/10 via-brand-accent/10 to-transparent blur-3xl will-change-transform transition-transform duration-300 ease-out"
+        style={{
+          transform: `translate3d(${mousePos.x * 0.4}px, ${-translateY3 + mousePos.y * 0.4}px, 0)`,
+        }}
+      />
 
-      {/* Crystal-clear readability overlay ensuring text, headings and badges stay 100% visible on mobile and desktop */}
-      <div className="absolute inset-0 bg-gradient-to-b from-white/94 via-white/88 via-60% to-surface-canvas/98 backdrop-blur-[0.5px]" />
+      {/* Subtle Geometric Ambient Grid */}
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#0f172a06_1px,transparent_1px),linear-gradient(to_bottom,#0f172a06_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-35" />
+
+      {/* Protective Surface Overlay ensuring 100% Crisp Typography */}
+      <div className="absolute inset-0 bg-gradient-to-b from-white/80 via-surface-canvas/50 to-surface-canvas/90" />
     </div>
   );
 }

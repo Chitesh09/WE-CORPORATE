@@ -102,6 +102,19 @@ function LoginForm() {
           </div>
         </div>
 
+        {/* Service Gate Notice */}
+        {searchParams.get("error") === "LoginRequiredToAccessServices" && !error && (
+          <div
+            role="status"
+            className="p-3.5 rounded-md bg-feedback-info-bg text-feedback-info-text text-xs flex items-start gap-2 border border-feedback-info-text/20"
+          >
+            <AlertCircle className="h-4 w-4 shrink-0 mt-0.5 text-brand-accent" />
+            <span>
+              Please sign in or register to access verified jobs, internships, and career services.
+            </span>
+          </div>
+        )}
+
         {/* Global Error Banner */}
         {error && (
           <div

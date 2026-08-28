@@ -116,9 +116,46 @@ export async function middleware(request: NextRequest) {
     }
   }
 
+  // 4. Protect Services (/jobs, /internships, /career-services, /connect, /companies)
+  const isServiceRoute =
+    pathname.startsWith("/jobs") ||
+    pathname.startsWith("/internships") ||
+    pathname.startsWith("/career-services") ||
+    pathname.startsWith("/connect") ||
+    pathname.startsWith("/companies");
+
+  if (isServiceRoute) {
+    const sessionCookie = request.cookies.get(SESSION_COOKIE_NAME);
+
+    if (!sessionCookie?.value) {
+      const loginUrl = new URL("/auth/login", request.url);
+      loginUrl.searchParams.set("callbackUrl", pathname);
+      loginUrl.searchParams.set("error", "LoginRequiredToAccessServices");
+      return NextResponse.redirect(loginUrl);
+    }
+
+    const payload = await verifyJwtEdge(sessionCookie.value, SESSION_SECRET);
+
+    if (!payload || payload.status === "suspended") {
+      const loginUrl = new URL("/auth/login", request.url);
+      loginUrl.searchParams.set("callbackUrl", pathname);
+      loginUrl.searchParams.set("error", "LoginRequiredToAccessServices");
+      return NextResponse.redirect(loginUrl);
+    }
+  }
+
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/c/:path*", "/e/:path*", "/admin/:path*"],
+  matcher: [
+    "/c/:path*",
+    "/e/:path*",
+    "/admin/:path*",
+    "/jobs/:path*",
+    "/internships/:path*",
+    "/career-services/:path*",
+    "/connect/:path*",
+    "/companies/:path*",
+  ],
 };
