@@ -310,6 +310,7 @@ export default async function JobDetailPage({ params }: JobDetailPageProps) {
                   companyName: job.company.name,
                   companyIsVerified: job.company.isVerified,
                   city: job.city,
+                  screeningQuestions: job.screeningQuestions || [],
                 }}
                 currentUser={currentUser}
                 profile={candidateProfile}

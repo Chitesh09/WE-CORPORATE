@@ -1,10 +1,4 @@
-/**
- * WE CORPORATE — Development Seed Data
- * 
- * NOTE: All data below is isolated development/test data representing realistic
- * opportunities across India for local development, visual verification, and testing.
- * Only listings with status: "published" are exposed to public endpoints.
- */
+import { ScreeningQuestion } from "@/types";
 
 export interface PublicJob {
   id: string;
@@ -24,6 +18,7 @@ export interface PublicJob {
   requirements: string[];
   perks: string[];
   skills: string[];
+  screeningQuestions?: ScreeningQuestion[];
   status: "draft" | "pending_moderation" | "published" | "paused" | "closed" | "rejected";
   publishedAt: string;
   company: {
@@ -74,6 +69,26 @@ export const DEVELOPMENT_JOBS: PublicJob[] = [
       "Wellness Stipend & Team Offsites"
     ],
     skills: ["React", "TypeScript", "Next.js", "Tailwind CSS", "REST APIs", "Git"],
+    screeningQuestions: [
+      {
+        id: "sq-001-1",
+        question: "What is your official notice period or earliest joining date?",
+        type: "text",
+        required: true,
+      },
+      {
+        id: "sq-001-2",
+        question: "Are you comfortable with working in a hybrid model (3 days office in Bengaluru)?",
+        type: "yes_no",
+        required: true,
+      },
+      {
+        id: "sq-001-3",
+        question: "How many months/years of hands-on React & TypeScript experience do you have?",
+        type: "text",
+        required: true,
+      }
+    ],
     status: "published",
     publishedAt: "2026-08-27T09:00:00Z",
     company: {

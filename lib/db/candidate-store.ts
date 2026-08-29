@@ -1,5 +1,5 @@
 import { hashPassword, hashPasswordSync, verifyPassword } from "@/lib/auth/password";
-import { UserRole, UserStatus, ApplicationStatus } from "@/types";
+import { UserRole, UserStatus, ApplicationStatus, ScreeningAnswer } from "@/types";
 import { DEVELOPMENT_JOBS } from "@/lib/db/seed-data";
 import { jobStore } from "@/lib/db/job-store";
 
@@ -97,6 +97,9 @@ export interface ApplicationRecord {
   companyName: string;
   status: ApplicationStatus;
   coverNote?: string;
+  screeningAnswers?: ScreeningAnswer[];
+  rating?: number;
+  recruiterNotes?: string;
   resumeSnapshot: ApplicationResumeSnapshot;
   profileSnapshot: ApplicationProfileSnapshot;
   consent: ApplicationConsentRecord;
@@ -582,6 +585,7 @@ class CandidateStore {
     jobId: string;
     resumeId: string;
     coverNote?: string;
+    screeningAnswers?: ScreeningAnswer[];
     ipAddress?: string;
     userAgent?: string;
   }): Promise<ApplicationRecord> {
@@ -675,6 +679,7 @@ class CandidateStore {
       companyName: job.company.name,
       status: "applied",
       coverNote: params.coverNote?.trim() ? params.coverNote.trim() : undefined,
+      screeningAnswers: params.screeningAnswers,
       resumeSnapshot,
       profileSnapshot,
       consent,
@@ -808,13 +813,13 @@ class CandidateStore {
       return app;
     }
 
-    // State Transition Matrix
+    // Flexible Kanban Transition Matrix (allows moving across review stages)
     const validTransitions: Record<ApplicationStatus, ApplicationStatus[]> = {
-      applied: ["under_review", "not_selected"],
-      under_review: ["shortlisted", "not_selected"],
-      shortlisted: ["hired", "not_selected"],
-      not_selected: [],
-      hired: [],
+      applied: ["under_review", "shortlisted", "hired", "not_selected"],
+      under_review: ["applied", "shortlisted", "hired", "not_selected"],
+      shortlisted: ["applied", "under_review", "hired", "not_selected"],
+      not_selected: ["applied", "under_review", "shortlisted"],
+      hired: ["shortlisted", "under_review"],
     };
 
     const allowedNext = validTransitions[currentStatus] || [];
@@ -845,6 +850,30 @@ class CandidateStore {
       note: params.note,
       timestamp: now,
     });
+
+    return app;
+  }
+
+  async updateApplicationEvaluation(params: {
+    employerUserId: string;
+    companyId: string;
+    jobId: string;
+    applicationId: string;
+    rating?: number;
+    recruiterNotes?: string;
+  }): Promise<ApplicationRecord> {
+    const app = this.applications.get(params.applicationId);
+    if (!app || app.jobId !== params.jobId) {
+      throw new Error("Application record not found or does not belong to this opportunity.");
+    }
+
+    if (params.rating !== undefined) {
+      app.rating = params.rating;
+    }
+    if (params.recruiterNotes !== undefined) {
+      app.recruiterNotes = params.recruiterNotes;
+    }
+    app.updatedAt = new Date().toISOString();
 
     return app;
   }

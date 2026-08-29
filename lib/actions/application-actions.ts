@@ -10,6 +10,12 @@ import { ActionResult } from "@/types";
 // 1. SCHEMAS
 // ==============================================================================
 
+const screeningAnswerSchema = z.object({
+  questionId: z.string(),
+  question: z.string(),
+  answer: z.string(),
+});
+
 const applicationSubmissionSchema = z.object({
   jobId: z.string().min(1, "Job identifier is required."),
   resumeId: z.string().min(1, "Please select a resume from your Resume Vault."),
@@ -17,6 +23,7 @@ const applicationSubmissionSchema = z.object({
     .string()
     .max(1000, "Cover note cannot exceed 1,000 characters.")
     .optional(),
+  screeningAnswers: z.array(screeningAnswerSchema).optional(),
   consentAgreed: z.literal(true, {
     errorMap: () => ({
       message: "You must consent to sharing your application data with the employer.",
@@ -47,6 +54,7 @@ export async function submitApplicationAction(
       jobId: validated.data.jobId,
       resumeId: validated.data.resumeId,
       coverNote: validated.data.coverNote,
+      screeningAnswers: validated.data.screeningAnswers,
     });
 
     revalidatePath("/c/applications");

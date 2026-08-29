@@ -1,5 +1,6 @@
 import { DEVELOPMENT_JOBS, PublicJob } from "@/lib/db/seed-data";
 import { employerStore } from "@/lib/db/employer-store";
+import { ScreeningQuestion } from "@/types";
 
 export type ExtendedJobStatus =
   | "draft"
@@ -32,6 +33,7 @@ export interface JobRecord {
   perks: string[];
   skills: string[];
   preferredSkills?: string[];
+  screeningQuestions?: ScreeningQuestion[];
   acceptsNativeApplications: boolean;
   status: ExtendedJobStatus;
   moderationFeedback?: string;
@@ -118,6 +120,7 @@ class JobStore {
           requirements: job.requirements,
           perks: job.perks,
           skills: job.skills,
+          screeningQuestions: job.screeningQuestions,
           status: "published",
           publishedAt: job.publishedAt || job.createdAt,
           company: job.company,
@@ -150,6 +153,7 @@ class JobStore {
           requirements: job.requirements,
           perks: job.perks,
           skills: job.skills,
+          screeningQuestions: job.screeningQuestions,
           status: "published",
           publishedAt: job.publishedAt || job.createdAt,
           company: job.company,
@@ -198,6 +202,7 @@ class JobStore {
     perks: string[];
     skills: string[];
     preferredSkills?: string[];
+    screeningQuestions?: ScreeningQuestion[];
   }): Promise<JobRecord> {
     const company = await employerStore.getCompanyById(params.companyId);
     if (!company) {
@@ -235,6 +240,7 @@ class JobStore {
       perks: params.perks,
       skills: params.skills,
       preferredSkills: params.preferredSkills || [],
+      screeningQuestions: params.screeningQuestions,
       acceptsNativeApplications: true,
       status: "draft", // Initial state is strictly draft
       createdAt: now,

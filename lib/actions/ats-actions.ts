@@ -108,3 +108,50 @@ export async function updateApplicationStageAction(
     return { success: false, error: message };
   }
 }
+
+/**
+ * Recruiter updates an applicant's star rating (1-5) and internal notes.
+ */
+export async function updateApplicationEvaluationAction(params: {
+  jobId: string;
+  applicationId: string;
+  rating?: number;
+  recruiterNotes?: string;
+}): Promise<ActionResult<ApplicationRecord>> {
+  try {
+    const user = await requireEmployer();
+    const companyData = await employerStore.getCompanyForEmployer(user.id);
+    if (!companyData) {
+      return { success: false, error: "Employer organization not found." };
+    }
+
+    const job = await jobStore.getJobById(params.jobId);
+    if (!job) {
+      return { success: false, error: "Job opportunity not found." };
+    }
+
+    if (job.companyId !== companyData.company.id && job.company.slug !== companyData.company.slug) {
+      return { success: false, error: "Access denied: You do not own this job opportunity." };
+    }
+
+    const updated = await candidateStore.updateApplicationEvaluation({
+      employerUserId: user.id,
+      companyId: companyData.company.id,
+      jobId: params.jobId,
+      applicationId: params.applicationId,
+      rating: params.rating,
+      recruiterNotes: params.recruiterNotes,
+    });
+
+    revalidatePath(`/e/jobs/${params.jobId}/applicants`);
+
+    return {
+      success: true,
+      data: updated,
+      message: "Candidate evaluation saved.",
+    };
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Failed to update candidate evaluation.";
+    return { success: false, error: message };
+  }
+}

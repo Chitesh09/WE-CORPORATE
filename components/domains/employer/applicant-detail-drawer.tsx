@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { ApplicationRecord } from "@/lib/db/candidate-store";
-import { updateApplicationStageAction } from "@/lib/actions/ats-actions";
+import { updateApplicationStageAction, updateApplicationEvaluationAction } from "@/lib/actions/ats-actions";
 import { ApplicationStatus } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -14,6 +14,10 @@ import {
   AlertCircle,
   Loader2,
   ShieldCheck,
+  Star,
+  HelpCircle,
+  CheckCircle2,
+  Save,
 } from "lucide-react";
 
 interface ApplicantDetailDrawerProps {
@@ -30,8 +34,12 @@ export function ApplicantDetailDrawer({
   onStatusUpdated,
 }: ApplicantDetailDrawerProps) {
   const [isPending, startTransition] = useTransition();
+  const [isSavingEval, startEvalTransition] = useTransition();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [evalSuccessMessage, setEvalSuccessMessage] = useState<string | null>(null);
   const [stageNote, setStageNote] = useState("");
+  const [rating, setRating] = useState<number>(application?.rating || 0);
+  const [recruiterNotes, setRecruiterNotes] = useState<string>(application?.recruiterNotes || "");
 
   if (!application) return null;
 
@@ -52,6 +60,27 @@ export function ApplicantDetailDrawer({
       } else {
         setStageNote("");
         onStatusUpdated(result.data);
+      }
+    });
+  };
+
+  const handleSaveEvaluation = () => {
+    setErrorMessage(null);
+    setEvalSuccessMessage(null);
+    startEvalTransition(async () => {
+      const result = await updateApplicationEvaluationAction({
+        jobId,
+        applicationId: application.id,
+        rating,
+        recruiterNotes,
+      });
+
+      if (!result.success) {
+        setErrorMessage(result.error);
+      } else {
+        setEvalSuccessMessage("Evaluation & notes saved successfully.");
+        onStatusUpdated(result.data);
+        setTimeout(() => setEvalSuccessMessage(null), 3000);
       }
     });
   };
@@ -201,6 +230,90 @@ export function ApplicantDetailDrawer({
               <div className="p-2 rounded bg-surface-card border border-border-subtle text-text-secondary text-[11px] font-mono">
                 [Controlled Preview]
               </div>
+            </div>
+          </div>
+
+          {/* Candidate Screening Responses */}
+          {application.screeningAnswers && application.screeningAnswers.length > 0 && (
+            <div className="space-y-3">
+              <div className="flex items-center gap-1.5 text-xs font-bold text-brand-primary uppercase tracking-wider">
+                <HelpCircle className="h-3.5 w-3.5 text-brand-accent" />
+                <span>Screening Responses ({application.screeningAnswers.length})</span>
+              </div>
+              <div className="space-y-2">
+                {application.screeningAnswers.map((item, idx) => (
+                  <div key={idx} className="p-3.5 rounded-lg bg-surface-subtle border border-border-subtle space-y-1.5 text-xs">
+                    <span className="font-semibold text-brand-primary block">{item.question}</span>
+                    <p className="text-text-secondary bg-surface-card p-2 rounded border border-border-subtle font-medium">
+                      {item.answer}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Recruiter Evaluation & Star Rating */}
+          <div className="space-y-3 p-4 rounded-xl bg-surface-subtle border border-border-strong">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5 text-xs font-bold text-brand-primary uppercase tracking-wider">
+                <Star className="h-3.5 w-3.5 text-amber-500 fill-amber-500" />
+                <span>Recruiter Evaluation & Notes</span>
+              </div>
+              {evalSuccessMessage && (
+                <span className="text-[11px] text-emerald-600 font-semibold flex items-center gap-1">
+                  <CheckCircle2 className="h-3.5 w-3.5" /> Saved
+                </span>
+              )}
+            </div>
+
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-medium text-text-secondary">Rating:</span>
+                <div className="flex items-center gap-1">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      type="button"
+                      onClick={() => setRating(star)}
+                      className="p-1 text-text-muted hover:text-amber-500 transition-colors"
+                      title={`${star} Star${star > 1 ? "s" : ""}`}
+                    >
+                      <Star
+                        className={`h-4 w-4 ${
+                          star <= rating ? "text-amber-500 fill-amber-500" : "text-border-strong"
+                        }`}
+                      />
+                    </button>
+                  ))}
+                </div>
+                {rating > 0 && <span className="text-xs font-bold text-brand-primary">({rating}/5 Stars)</span>}
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-medium text-text-secondary mb-1">
+                  Internal Team Notes / Interview Feedback:
+                </label>
+                <textarea
+                  value={recruiterNotes}
+                  onChange={(e) => setRecruiterNotes(e.target.value)}
+                  placeholder="Add recruiter observations, interview feedback, compensation notes..."
+                  rows={3}
+                  className="w-full rounded-md border border-border-strong bg-surface-card p-2.5 text-xs text-brand-primary placeholder:text-text-muted focus:ring-2 focus:ring-border-focus"
+                />
+              </div>
+
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={handleSaveEvaluation}
+                disabled={isSavingEval}
+                className="text-xs h-8 font-semibold bg-white border-border-strong"
+              >
+                {isSavingEval ? <Loader2 className="h-3 w-3 animate-spin mr-1.5" /> : <Save className="h-3 w-3 mr-1.5 text-brand-accent" />}
+                Save Evaluation
+              </Button>
             </div>
           </div>
 

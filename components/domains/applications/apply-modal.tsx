@@ -5,9 +5,11 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { submitApplicationAction } from "@/lib/actions/application-actions";
 import { CandidateResumeRecord, CandidateProfileData } from "@/lib/db/candidate-store";
+import { ScreeningQuestion, ScreeningAnswer } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import {
   Send,
   FileText,
@@ -19,6 +21,7 @@ import {
   ArrowRight,
   ArrowLeft,
   Check,
+  HelpCircle,
 } from "lucide-react";
 
 interface ApplyModalProps {
@@ -29,6 +32,7 @@ interface ApplyModalProps {
     companyName: string;
     companyIsVerified: boolean;
     city: string;
+    screeningQuestions?: ScreeningQuestion[];
   };
   currentUser?: {
     id: string;
@@ -57,6 +61,7 @@ export function ApplyModal({
   const primaryResume = resumes.find((r) => r.isPrimary) || resumes[0];
   const [selectedResumeId, setSelectedResumeId] = useState<string>(primaryResume?.id || "");
   const [coverNote, setCoverNote] = useState("");
+  const [screeningAnswers, setScreeningAnswers] = useState<Record<string, string>>({});
   const [consentAgreed, setConsentAgreed] = useState(false);
   const [submittedAppId, setSubmittedAppId] = useState<string | null>(null);
 
@@ -108,6 +113,16 @@ export function ApplyModal({
       return;
     }
 
+    // Validate custom screening questions
+    if (job.screeningQuestions && job.screeningQuestions.length > 0) {
+      for (const q of job.screeningQuestions) {
+        if (q.required && (!screeningAnswers[q.id] || !screeningAnswers[q.id].trim())) {
+          setErrorMessage(`Please answer the screening question: "${q.question}"`);
+          return;
+        }
+      }
+    }
+
     if (!consentAgreed) {
       setErrorMessage("You must agree to share your application details with the employer.");
       return;
@@ -119,11 +134,20 @@ export function ApplyModal({
   const handleConfirmSubmit = () => {
     setErrorMessage(null);
 
+    const formattedAnswers: ScreeningAnswer[] = (job.screeningQuestions || [])
+      .filter((q) => screeningAnswers[q.id] && screeningAnswers[q.id].trim())
+      .map((q) => ({
+        questionId: q.id,
+        question: q.question,
+        answer: screeningAnswers[q.id].trim(),
+      }));
+
     startTransition(async () => {
       const result = await submitApplicationAction({
         jobId: job.id,
         resumeId: selectedResumeId,
         coverNote: coverNote.trim() || undefined,
+        screeningAnswers: formattedAnswers.length > 0 ? formattedAnswers : undefined,
         consentAgreed: true,
       });
 
@@ -306,7 +330,63 @@ export function ApplyModal({
                   )}
                 </div>
 
-                {/* 3. Optional Cover Note */}
+                {/* 3. Custom Employer Screening Questions */}
+                {job.screeningQuestions && job.screeningQuestions.length > 0 && (
+                  <div className="space-y-3 pt-2 border-t border-border-subtle">
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-brand-primary uppercase tracking-wider">
+                      <HelpCircle className="h-3.5 w-3.5 text-brand-accent" />
+                      <span>Employer Screening Questions ({job.screeningQuestions.length})</span>
+                    </div>
+
+                    <div className="space-y-3">
+                      {job.screeningQuestions.map((q, idx) => (
+                        <div key={q.id} className="space-y-1.5 p-3 rounded-lg bg-surface-subtle border border-border-subtle">
+                          <label className="text-xs font-semibold text-brand-primary block">
+                            {idx + 1}. {q.question} {q.required && <span className="text-feedback-error-text">*</span>}
+                          </label>
+
+                          {q.type === "yes_no" ? (
+                            <div className="flex gap-2 pt-1">
+                              {["Yes", "No"].map((opt) => (
+                                <button
+                                  key={opt}
+                                  type="button"
+                                  onClick={() => setScreeningAnswers({ ...screeningAnswers, [q.id]: opt })}
+                                  className={`px-4 py-1.5 rounded-md text-xs font-semibold border transition-colors ${
+                                    screeningAnswers[q.id] === opt
+                                      ? "bg-brand-primary text-white border-brand-primary"
+                                      : "bg-surface-card text-text-secondary border-border-strong hover:bg-surface-subtle"
+                                  }`}
+                                >
+                                  {opt}
+                                </button>
+                              ))}
+                            </div>
+                          ) : q.type === "number" ? (
+                            <Input
+                              type="number"
+                              value={screeningAnswers[q.id] || ""}
+                              onChange={(e) => setScreeningAnswers({ ...screeningAnswers, [q.id]: e.target.value })}
+                              placeholder="Enter number (e.g. 3)"
+                              className="text-xs h-9 bg-surface-card"
+                              required={q.required}
+                            />
+                          ) : (
+                            <Input
+                              value={screeningAnswers[q.id] || ""}
+                              onChange={(e) => setScreeningAnswers({ ...screeningAnswers, [q.id]: e.target.value })}
+                              placeholder="Your response..."
+                              className="text-xs h-9 bg-surface-card"
+                              required={q.required}
+                            />
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* 4. Optional Cover Note */}
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
                     <label htmlFor="coverNote" className="text-xs font-bold text-brand-primary uppercase tracking-wider">
@@ -325,7 +405,7 @@ export function ApplyModal({
                   />
                 </div>
 
-                {/* 4. Mandatory Explicit Consent */}
+                {/* 5. Mandatory Explicit Consent */}
                 <div className="pt-2 border-t border-border-subtle">
                   <label className="flex items-start gap-2.5 cursor-pointer text-xs text-text-secondary leading-relaxed">
                     <input
@@ -391,6 +471,20 @@ export function ApplyModal({
                       </span>
                     </div>
                   </div>
+
+                  {job.screeningQuestions && job.screeningQuestions.length > 0 && (
+                    <div className="pt-2 border-t border-border-subtle space-y-2">
+                      <span className="text-text-muted block font-medium">Screening Responses:</span>
+                      {job.screeningQuestions.map((q) => (
+                        <div key={q.id} className="p-2 rounded bg-surface-card border border-border-subtle space-y-0.5">
+                          <span className="font-semibold text-brand-primary text-[11px] block">{q.question}</span>
+                          <span className="text-text-secondary text-[11px] block">
+                            {screeningAnswers[q.id] || "N/A"}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
 
                   {coverNote && (
                     <div className="pt-2 border-t border-border-subtle">

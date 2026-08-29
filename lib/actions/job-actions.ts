@@ -11,6 +11,14 @@ import { ActionResult } from "@/types";
 // 1. SCHEMAS
 // ==============================================================================
 
+const screeningQuestionSchema = z.object({
+  id: z.string(),
+  question: z.string().min(3, "Question must be at least 3 characters."),
+  type: z.enum(["text", "yes_no", "number"]),
+  required: z.boolean().default(true),
+  idealAnswer: z.string().optional(),
+});
+
 const jobCreationSchema = z
   .object({
     title: z.string().min(3, "Job title must be at least 3 characters.").max(120),
@@ -29,6 +37,7 @@ const jobCreationSchema = z
     perks: z.array(z.string()).default([]),
     skills: z.array(z.string()).min(1, "At least one skill is required."),
     preferredSkills: z.array(z.string()).default([]),
+    screeningQuestions: z.array(screeningQuestionSchema).optional(),
   })
   .refine((data) => data.maxCompensation >= data.minCompensation, {
     message: "Maximum compensation cannot be less than minimum compensation.",
@@ -77,6 +86,7 @@ export async function createJobDraftAction(
       perks: validated.data.perks,
       skills: validated.data.skills,
       preferredSkills: validated.data.preferredSkills,
+      screeningQuestions: validated.data.screeningQuestions,
     });
 
     revalidatePath("/e/jobs");

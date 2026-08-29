@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { createJobDraftAction, submitJobForModerationAction } from "@/lib/actions/job-actions";
+import { ScreeningQuestion } from "@/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,6 +19,8 @@ import {
   Send,
   X,
   Plus,
+  HelpCircle,
+  Trash2,
 } from "lucide-react";
 
 interface JobCreationWizardProps {
@@ -55,6 +58,40 @@ export function JobCreationWizard({ company }: JobCreationWizardProps) {
   const [requirementsText, setRequirementsText] = useState("");
   const [skills, setSkills] = useState<string[]>(["React", "TypeScript"]);
   const [skillInput, setSkillInput] = useState("");
+
+  // Custom Screening Questions State
+  const [screeningQuestions, setScreeningQuestions] = useState<ScreeningQuestion[]>([
+    {
+      id: "sq-1",
+      question: "What is your official notice period?",
+      type: "text",
+      required: true,
+    },
+    {
+      id: "sq-2",
+      question: "Are you comfortable working from our office location specified in the listing?",
+      type: "yes_no",
+      required: true,
+    },
+  ]);
+  const [newQuestionText, setNewQuestionText] = useState("");
+  const [newQuestionType, setNewQuestionType] = useState<"text" | "yes_no" | "number">("text");
+
+  const handleAddQuestion = () => {
+    if (!newQuestionText.trim()) return;
+    const newQ: ScreeningQuestion = {
+      id: `sq-${Date.now()}`,
+      question: newQuestionText.trim(),
+      type: newQuestionType,
+      required: true,
+    };
+    setScreeningQuestions([...screeningQuestions, newQ]);
+    setNewQuestionText("");
+  };
+
+  const handleRemoveQuestion = (id: string) => {
+    setScreeningQuestions(screeningQuestions.filter((q) => q.id !== id));
+  };
 
   const isCompanyVerified = company.verificationStatus === "verified";
 
@@ -103,6 +140,7 @@ export function JobCreationWizard({ company }: JobCreationWizardProps) {
         perks: ["Health Insurance", "Learning Stipend", "Flexible Hours"],
         skills,
         preferredSkills: [],
+        screeningQuestions: screeningQuestions.length > 0 ? screeningQuestions : undefined,
         isCompensationNegotiable: false,
       });
 
@@ -509,6 +547,82 @@ export function JobCreationWizard({ company }: JobCreationWizardProps) {
                   </Button>
                 </div>
               </div>
+
+              {/* Custom Screening Questions Builder */}
+              <div className="space-y-3 pt-3 border-t border-border-subtle">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <label className="text-xs font-bold text-brand-primary flex items-center gap-1.5">
+                      <HelpCircle className="h-3.5 w-3.5 text-brand-accent" />
+                      <span>Custom Candidate Screening Questions ({screeningQuestions.length})</span>
+                    </label>
+                    <p className="text-[11px] text-text-secondary">
+                      Ask candidates tailored knockout/qualification questions during their 1-Click Application.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Existing Questions List */}
+                <div className="space-y-2">
+                  {screeningQuestions.map((q, idx) => (
+                    <div
+                      key={q.id}
+                      className="p-3 rounded-lg bg-surface-subtle border border-border-subtle flex items-start justify-between gap-3 text-xs"
+                    >
+                      <div className="space-y-0.5 flex-1">
+                        <span className="font-semibold text-brand-primary">
+                          {idx + 1}. {q.question}
+                        </span>
+                        <div className="flex items-center gap-2 text-[10px] text-text-muted">
+                          <span className="capitalize">Type: {q.type.replace("_", " ")}</span>
+                          <span>•</span>
+                          <span className="text-feedback-error-text font-medium">Required</span>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveQuestion(q.id)}
+                        className="p-1 text-text-muted hover:text-feedback-error-text transition-colors"
+                        title="Remove question"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Add New Question Input */}
+                <div className="p-3 rounded-lg bg-surface-card border border-border-strong space-y-2.5">
+                  <span className="text-xs font-semibold text-brand-primary block">Add Screening Question:</span>
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <Input
+                      value={newQuestionText}
+                      onChange={(e) => setNewQuestionText(e.target.value)}
+                      placeholder="e.g. How many years of commercial TypeScript experience do you have?"
+                      className="text-xs flex-1"
+                    />
+                    <select
+                      value={newQuestionType}
+                      onChange={(e) => setNewQuestionType(e.target.value as "text" | "yes_no" | "number")}
+                      className="rounded-md border border-border-strong bg-surface-card px-2.5 py-1.5 text-xs text-brand-primary focus:ring-2 focus:ring-border-focus shrink-0"
+                    >
+                      <option value="text">Text Response</option>
+                      <option value="yes_no">Yes / No</option>
+                      <option value="number">Numeric</option>
+                    </select>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleAddQuestion}
+                      disabled={!newQuestionText.trim()}
+                      className="text-xs shrink-0 font-semibold"
+                    >
+                      <Plus className="h-3.5 w-3.5 mr-1 text-brand-accent" /> Add Question
+                    </Button>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <div className="flex justify-between pt-4 border-t border-border-subtle">
@@ -576,6 +690,21 @@ export function JobCreationWizard({ company }: JobCreationWizardProps) {
                   ))}
                 </div>
               </div>
+
+              {screeningQuestions.length > 0 && (
+                <div className="pt-2 border-t border-border-subtle">
+                  <span className="text-text-muted block mb-1 font-medium">
+                    Screening Questions ({screeningQuestions.length}):
+                  </span>
+                  <ul className="list-disc pl-4 space-y-0.5 text-text-secondary text-[11px]">
+                    {screeningQuestions.map((q) => (
+                      <li key={q.id}>
+                        {q.question} <span className="text-text-muted">({q.type})</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
 
             {/* Verification Gate Notice */}

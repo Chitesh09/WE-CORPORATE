@@ -31,6 +31,21 @@ export type ApplicationStage =
 
 export type ApplicationStatus = ApplicationStage;
 
+// Screening Question & Answer Models
+export interface ScreeningQuestion {
+  id: string;
+  question: string;
+  type: "text" | "yes_no" | "number";
+  required: boolean;
+  idealAnswer?: string;
+}
+
+export interface ScreeningAnswer {
+  questionId: string;
+  question: string;
+  answer: string;
+}
+
 // Session User Model
 export interface SessionUser {
   id: string;
