@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { collegeStore } from "@/lib/actions/college-actions";
+import { collegeStore } from "@/lib/db/college-store";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -49,7 +49,7 @@ export default async function AdminInquiriesPage() {
                       <Badge variant="info" className="text-[10px]">
                         Ref: {item.referenceCode}
                       </Badge>
-                      <span className="text-[11px] text-text-muted">• {item.affiliationType}</span>
+                      <span className="text-[11px] text-text-muted">â€¢ {item.affiliationType}</span>
                     </div>
 
                     <h3 className="text-base sm:text-lg font-bold text-brand-primary">
@@ -58,12 +58,12 @@ export default async function AdminInquiriesPage() {
 
                     <div className="flex flex-wrap items-center gap-3 text-xs text-text-secondary">
                       <span className="font-semibold text-brand-primary">{item.tpoHeadName}</span>
-                      <span>•</span>
+                      <span>â€¢</span>
                       <span className="flex items-center gap-1">
                         <Mail className="h-3 w-3 text-brand-accent" />
                         {item.officialEmail}
                       </span>
-                      <span>•</span>
+                      <span>â€¢</span>
                       <span className="flex items-center gap-1">
                         <Phone className="h-3 w-3 text-brand-accent" />
                         {item.phoneNumber}
