@@ -8,7 +8,20 @@ import { logoutAction } from "@/lib/actions/auth-actions";
 import { SessionUser } from "@/types";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { Briefcase, ShieldCheck, Menu, X, ArrowRight, LogOut, LayoutDashboard } from "lucide-react";
+import {
+  Briefcase,
+  ShieldCheck,
+  Menu,
+  X,
+  ArrowRight,
+  LogOut,
+  LayoutDashboard,
+  GraduationCap,
+  TrendingUp,
+  Sparkles,
+  Building2,
+  Compass,
+} from "lucide-react";
 
 interface PublicHeaderProps {
   user?: SessionUser | null;
@@ -173,17 +186,35 @@ export function PublicHeader({ user }: PublicHeaderProps) {
                 pathname === item.href ||
                 (item.href !== "/" && pathname.startsWith(item.href));
 
+              const Icon =
+                item.href.startsWith("/jobs")
+                  ? Briefcase
+                  : item.href.startsWith("/internships")
+                  ? GraduationCap
+                  : item.href.startsWith("/salary-insights")
+                  ? TrendingUp
+                  : item.href.startsWith("/career-services")
+                  ? Sparkles
+                  : item.href.startsWith("/connect/college")
+                  ? Building2
+                  : Compass;
+
               return (
                 <Link
                   key={item.href}
                   href={item.href}
                   onClick={() => setMobileMenuOpen(false)}
                   className={cn(
-                    "flex items-center justify-between py-2.5 px-3 rounded-md text-sm font-medium text-text-secondary hover:bg-surface-subtle hover:text-brand-primary transition-colors",
-                    isActive && "bg-surface-subtle text-brand-primary font-bold"
+                    "flex items-center justify-between py-2.5 px-3 rounded-lg text-sm font-medium transition-colors",
+                    isActive
+                      ? "bg-surface-subtle text-brand-primary font-bold shadow-xs"
+                      : "text-text-secondary hover:bg-surface-subtle hover:text-brand-primary"
                   )}
                 >
-                  <span>{item.title}</span>
+                  <div className="flex items-center gap-3">
+                    <Icon className={cn("h-4 w-4 shrink-0", isActive ? "text-brand-accent" : "text-text-muted")} />
+                    <span>{item.title}</span>
+                  </div>
                   <ArrowRight className="h-4 w-4 text-text-muted" />
                 </Link>
               );
