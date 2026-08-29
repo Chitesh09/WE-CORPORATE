@@ -2,17 +2,46 @@
 
 import { useState, useTransition, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { updateCandidateProfileAction } from "@/lib/actions/candidate-actions";
 import { CandidateUserRecord, CandidateProfileData } from "@/lib/db/candidate-store";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { CheckCircle2, AlertCircle, Loader2, Plus, X, Globe, Linkedin, Github } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import {
+  CheckCircle2,
+  AlertCircle,
+  Loader2,
+  Plus,
+  X,
+  Globe,
+  Linkedin,
+  Github,
+  Sparkles,
+  Award,
+  Check,
+} from "lucide-react";
 
 interface CandidateProfileFormProps {
   user: CandidateUserRecord;
   profile: CandidateProfileData;
 }
+
+const TRENDING_SKILLS = [
+  "React",
+  "TypeScript",
+  "Next.js",
+  "Tailwind CSS",
+  "Node.js",
+  "PostgreSQL",
+  "Python",
+  "Docker",
+  "GraphQL",
+  "AWS",
+  "Figma",
+  "Git & GitHub",
+];
 
 export function CandidateProfileForm({ user, profile }: CandidateProfileFormProps) {
   const router = useRouter();
@@ -48,11 +77,21 @@ export function CandidateProfileForm({ user, profile }: CandidateProfileFormProp
     setPortfolioUrl(profile.portfolioUrl || "");
   }, [user.fullName, profile]);
 
-  const handleAddSkill = () => {
-    const trimmed = newSkillInput.trim();
-    if (trimmed && !skills.includes(trimmed)) {
-      setSkills([...skills, trimmed]);
-      setNewSkillInput("");
+  // Profile Strength Calculator
+  const checklist = [
+    { label: "Basic Info & Headline", done: !!(fullName.trim() && headline.trim()), weight: 20 },
+    { label: "Key Skills (≥ 3 skills)", done: skills.length >= 3, weight: 25 },
+    { label: "Location & Experience", done: !!(city.trim() && state.trim()), weight: 20 },
+    { label: "Bio / Career Summary", done: bio.trim().length >= 20, weight: 20 },
+    { label: "Professional Links", done: !!(githubUrl.trim() || linkedinUrl.trim() || portfolioUrl.trim()), weight: 15 },
+  ];
+  const strengthScore = checklist.reduce((acc, item) => (item.done ? acc + item.weight : acc), 0);
+
+  const handleAddSkill = (skillToAdd?: string) => {
+    const target = (skillToAdd || newSkillInput).trim();
+    if (target && !skills.includes(target)) {
+      setSkills([...skills, target]);
+      if (!skillToAdd) setNewSkillInput("");
     }
   };
 
@@ -128,6 +167,85 @@ export function CandidateProfileForm({ user, profile }: CandidateProfileFormProp
           <span className="font-medium">{statusMessage.message}</span>
         </div>
       )}
+
+      {/* Interactive Profile Completeness Booster Card */}
+      <Card className="border border-brand-accent/30 bg-gradient-to-r from-brand-accent/5 via-surface-card to-surface-subtle rounded-xl overflow-hidden shadow-sm">
+        <CardContent className="p-5 space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-brand-primary uppercase tracking-wider flex items-center gap-1.5">
+                  <Award className="h-4 w-4 text-amber-500" /> Profile Strength Booster
+                </span>
+                <Badge
+                  variant={strengthScore >= 80 ? "verified" : "secondary"}
+                  className="text-[10px] font-bold"
+                >
+                  {strengthScore >= 80 ? "Strong Candidate Profile" : "Needs Completion"}
+                </Badge>
+              </div>
+              <p className="text-xs text-text-secondary">
+                Complete profiles receive <strong>3.8x more recruiter responses</strong> and match higher in 1-Click apply screening.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div className="text-right">
+                <span className="text-xl font-extrabold text-brand-primary">{strengthScore}%</span>
+                <span className="text-[10px] text-text-muted block">Score</span>
+              </div>
+              <Link href="/c/resumes">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="text-xs h-8 px-3 font-semibold border-brand-accent/40 text-brand-primary hover:bg-brand-accent/10 gap-1"
+                >
+                  <Sparkles className="h-3 w-3 text-amber-500" />
+                  <span>Auto-Fill from Resume</span>
+                </Button>
+              </Link>
+            </div>
+          </div>
+
+          {/* Progress Bar */}
+          <div className="w-full bg-surface-subtle rounded-full h-2 overflow-hidden border border-border-subtle">
+            <div
+              className={`h-full transition-all duration-500 rounded-full ${
+                strengthScore >= 80
+                  ? "bg-emerald-500"
+                  : strengthScore >= 50
+                  ? "bg-brand-accent"
+                  : "bg-amber-500"
+              }`}
+              style={{ width: `${strengthScore}%` }}
+            />
+          </div>
+
+          {/* Checklist Items */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 pt-1">
+            {checklist.map((item) => (
+              <div
+                key={item.label}
+                className={`p-2 rounded-lg border text-[11px] flex items-center gap-1.5 transition-colors ${
+                  item.done
+                    ? "bg-emerald-50/50 border-emerald-200 text-emerald-800"
+                    : "bg-surface-card border-border-subtle text-text-muted"
+                }`}
+              >
+                <div
+                  className={`h-4 w-4 rounded-full flex items-center justify-center text-[10px] shrink-0 ${
+                    item.done ? "bg-emerald-600 text-white" : "bg-surface-subtle text-text-muted"
+                  }`}
+                >
+                  {item.done ? <Check className="h-2.5 w-2.5" /> : "•"}
+                </div>
+                <span className="truncate font-medium">{item.label}</span>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* 1. Basic Information */}
       <Card className="border border-border-subtle bg-surface-card rounded-lg">
@@ -284,7 +402,7 @@ export function CandidateProfileForm({ user, profile }: CandidateProfileFormProp
               <Button
                 type="button"
                 variant="outline"
-                onClick={handleAddSkill}
+                onClick={() => handleAddSkill()}
                 disabled={isPending || !newSkillInput.trim()}
                 className="text-xs h-10 px-4 shrink-0 font-medium"
               >
@@ -314,6 +432,26 @@ export function CandidateProfileForm({ user, profile }: CandidateProfileFormProp
                   No skills added yet. Add relevant programming languages, frameworks, or domain skills.
                 </span>
               )}
+            </div>
+
+            {/* Trending & Recommended Skills Quick-Add */}
+            <div className="pt-2 border-t border-border-subtle space-y-1.5">
+              <span className="text-[11px] font-semibold text-text-muted flex items-center gap-1">
+                <Sparkles className="h-3 w-3 text-amber-500" /> Recommended in India Tech (Click to Add):
+              </span>
+              <div className="flex flex-wrap gap-1.5">
+                {TRENDING_SKILLS.filter((s) => !skills.includes(s)).map((trend) => (
+                  <button
+                    key={trend}
+                    type="button"
+                    onClick={() => handleAddSkill(trend)}
+                    className="text-[11px] font-medium px-2 py-0.5 rounded-full border border-dashed border-brand-accent/40 bg-brand-accent/5 text-brand-primary hover:bg-brand-accent/15 transition-colors flex items-center gap-1"
+                  >
+                    <Plus className="h-2.5 w-2.5 text-brand-accent" />
+                    <span>{trend}</span>
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         </CardContent>

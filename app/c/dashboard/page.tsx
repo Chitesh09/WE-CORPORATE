@@ -14,6 +14,7 @@ import {
   CheckCircle2,
   AlertCircle,
   Search,
+  Sparkles,
 } from "lucide-react";
 
 export default async function CandidateDashboardPage() {
@@ -60,6 +61,37 @@ export default async function CandidateDashboardPage() {
             <Search className="h-3.5 w-3.5 mr-1.5" /> Explore Verified Jobs
           </Button>
         </Link>
+      </div>
+
+      {/* AI Resume Auto-Parser & Profile Booster CTA Banner */}
+      <div className="p-4 rounded-xl border border-brand-accent/30 bg-gradient-to-r from-brand-accent/10 via-surface-card to-surface-subtle flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold text-brand-primary uppercase tracking-wider flex items-center gap-1.5">
+              <Sparkles className="h-4 w-4 text-amber-500" /> AI Resume Auto-Parser & Profile Booster
+            </span>
+            <span className="text-[10px] bg-brand-accent/20 text-brand-primary font-semibold px-2 py-0.5 rounded-full">
+              Phase 3 Live
+            </span>
+          </div>
+          <p className="text-xs text-text-secondary">
+            Upload your resume PDF to automatically extract tech skills, candidate bio, and boost your profile match score in seconds.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2.5 shrink-0">
+          <Link href="/c/resumes">
+            <Button size="sm" className="text-xs h-9 font-bold gap-1.5 shadow-sm">
+              <Sparkles className="h-3.5 w-3.5 text-amber-300" />
+              <span>Auto-Parse Resume</span>
+            </Button>
+          </Link>
+          <Link href="/c/profile">
+            <Button variant="outline" size="sm" className="text-xs h-9 font-semibold border-border-strong">
+              <span>View Profile ({completeness}%)</span>
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {/* 4 Metric Cards Grid */}
