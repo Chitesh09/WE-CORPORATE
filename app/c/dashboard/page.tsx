@@ -15,6 +15,7 @@ import {
   AlertCircle,
   Search,
   Sparkles,
+  Bell,
 } from "lucide-react";
 
 export default async function CandidateDashboardPage() {
@@ -26,6 +27,7 @@ export default async function CandidateDashboardPage() {
   const resumes = await candidateStore.getResumes(user.id);
   const savedJobs = await candidateStore.getSavedJobs(user.id);
   const applications = await candidateStore.getApplications(user.id);
+  const jobAlerts = await candidateStore.getJobAlerts(user.id);
 
   const primaryResume = resumes.find((r) => r.isPrimary) || resumes[0];
 
@@ -94,8 +96,8 @@ export default async function CandidateDashboardPage() {
         </div>
       </div>
 
-      {/* 4 Metric Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* 5 Metric Cards Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
         {/* Profile Completeness Card */}
         <Card className="border border-border-subtle bg-surface-card shadow-sm rounded-lg">
           <CardContent className="p-5 space-y-3">
@@ -168,7 +170,7 @@ export default async function CandidateDashboardPage() {
           <CardContent className="p-5 space-y-3">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-text-secondary uppercase tracking-wider">
-                My Applications
+                Applications
               </span>
               <Send className="h-4 w-4 text-brand-accent" />
             </div>
@@ -183,7 +185,34 @@ export default async function CandidateDashboardPage() {
               href="/c/applications"
               className="text-xs font-semibold text-brand-accent hover:underline inline-flex items-center gap-1"
             >
-              Application Tracker <ArrowRight className="h-3 w-3" />
+              Tracker <ArrowRight className="h-3 w-3" />
+            </Link>
+          </CardContent>
+        </Card>
+
+        {/* Job Alerts Card */}
+        <Card className="border border-border-subtle bg-surface-card shadow-sm rounded-lg">
+          <CardContent className="p-5 space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-text-secondary uppercase tracking-wider">
+                Smart Alerts
+              </span>
+              <Bell className="h-4 w-4 text-brand-accent" />
+            </div>
+            <div className="flex items-baseline gap-2">
+              <span className="text-2xl font-extrabold text-brand-primary">{jobAlerts.length}</span>
+              <span className="text-xs text-emerald-700 font-semibold">
+                {jobAlerts.filter((a) => a.isActive).length} Active
+              </span>
+            </div>
+            <p className="text-[11px] text-text-muted truncate">
+              Automated notifications
+            </p>
+            <Link
+              href="/c/alerts"
+              className="text-xs font-semibold text-brand-accent hover:underline inline-flex items-center gap-1"
+            >
+              Manage Alerts <ArrowRight className="h-3 w-3" />
             </Link>
           </CardContent>
         </Card>
@@ -208,7 +237,7 @@ export default async function CandidateDashboardPage() {
               href="/c/saved"
               className="text-xs font-semibold text-brand-accent hover:underline inline-flex items-center gap-1"
             >
-              View Saved Jobs <ArrowRight className="h-3 w-3" />
+              Saved Jobs <ArrowRight className="h-3 w-3" />
             </Link>
           </CardContent>
         </Card>

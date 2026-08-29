@@ -5,6 +5,7 @@ export const siteConfig = {
   mainNav: [
     { title: "Find Jobs", href: "/jobs" },
     { title: "Internships", href: "/internships" },
+    { title: "Salary Insights", href: "/salary-insights" },
     { title: "Career Services", href: "/career-services" },
     { title: "College Connect", href: "/connect/college" },
     { title: "Vendor Connect", href: "/connect/vendor" },
@@ -14,6 +15,7 @@ export const siteConfig = {
     { title: "Profile", href: "/c/profile" },
     { title: "Resume Vault", href: "/c/resumes" },
     { title: "Applications", href: "/c/applications" },
+    { title: "Job Alerts", href: "/c/alerts" },
     { title: "Saved Jobs", href: "/c/saved" },
     { title: "Consulting", href: "/c/consulting" },
     { title: "Settings", href: "/c/settings" },

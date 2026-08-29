@@ -124,12 +124,26 @@ export interface ApplicationStatusAuditRecord {
   timestamp: string;
 }
 
+export interface CandidateJobAlertRecord {
+  id: string;
+  userId: string;
+  title: string;
+  keywords: string;
+  location?: string;
+  minCompensationLpa?: number;
+  frequency: "instant" | "daily" | "weekly";
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 // In-Memory / Isolated Repository State for Development & Verification
 class CandidateStore {
   private users: Map<string, CandidateUserRecord> = new Map();
   private resumes: Map<string, CandidateResumeRecord> = new Map();
   private savedJobs: Map<string, SavedJobRecord> = new Map();
   private applications: Map<string, ApplicationRecord> = new Map();
+  private jobAlerts: Map<string, CandidateJobAlertRecord> = new Map();
   private applicationAuditLogs: ApplicationStatusAuditRecord[] = [];
 
   constructor() {
@@ -254,6 +268,33 @@ class CandidateStore {
       ],
       submittedAt: appTime,
       updatedAt: appTime,
+    });
+
+    // Seed Demo Job Alerts
+    this.jobAlerts.set("alert-001", {
+      id: "alert-001",
+      userId: demoId,
+      title: "Frontend Engineer (React / TypeScript)",
+      keywords: "Frontend, React, Next.js",
+      location: "Bengaluru",
+      minCompensationLpa: 10,
+      frequency: "daily",
+      isActive: true,
+      createdAt: new Date(Date.now() - 7 * 86400000).toISOString(),
+      updatedAt: new Date(Date.now() - 7 * 86400000).toISOString(),
+    });
+
+    this.jobAlerts.set("alert-002", {
+      id: "alert-002",
+      userId: demoId,
+      title: "Pan-India Remote Roles",
+      keywords: "Remote, Full-Stack",
+      location: "Remote",
+      minCompensationLpa: 12,
+      frequency: "instant",
+      isActive: true,
+      createdAt: new Date(Date.now() - 3 * 86400000).toISOString(),
+      updatedAt: new Date(Date.now() - 3 * 86400000).toISOString(),
     });
   }
 
@@ -883,6 +924,69 @@ class CandidateStore {
       return this.applicationAuditLogs.filter((l) => l.applicationId === applicationId);
     }
     return this.applicationAuditLogs;
+  }
+
+  // ==========================================
+  // 6. SMART JOB ALERTS (Phase 4)
+  // ==========================================
+
+  async getJobAlerts(userId: string): Promise<CandidateJobAlertRecord[]> {
+    const list: CandidateJobAlertRecord[] = [];
+    for (const alert of this.jobAlerts.values()) {
+      if (alert.userId === userId) {
+        list.push({ ...alert });
+      }
+    }
+    return list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }
+
+  async createJobAlert(data: {
+    userId: string;
+    title: string;
+    keywords: string;
+    location?: string;
+    minCompensationLpa?: number;
+    frequency: "instant" | "daily" | "weekly";
+  }): Promise<CandidateJobAlertRecord> {
+    const alertId = `alert-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+    const now = new Date().toISOString();
+
+    const record: CandidateJobAlertRecord = {
+      id: alertId,
+      userId: data.userId,
+      title: data.title.trim(),
+      keywords: data.keywords.trim(),
+      location: data.location?.trim() || undefined,
+      minCompensationLpa: data.minCompensationLpa,
+      frequency: data.frequency,
+      isActive: true,
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    this.jobAlerts.set(alertId, record);
+    return record;
+  }
+
+  async toggleJobAlert(userId: string, alertId: string): Promise<CandidateJobAlertRecord> {
+    const alert = this.jobAlerts.get(alertId);
+    if (!alert || alert.userId !== userId) {
+      throw new Error("Job alert not found or unauthorized.");
+    }
+
+    alert.isActive = !alert.isActive;
+    alert.updatedAt = new Date().toISOString();
+    return alert;
+  }
+
+  async deleteJobAlert(userId: string, alertId: string): Promise<boolean> {
+    const alert = this.jobAlerts.get(alertId);
+    if (!alert || alert.userId !== userId) {
+      throw new Error("Job alert not found or unauthorized.");
+    }
+
+    this.jobAlerts.delete(alertId);
+    return true;
   }
 }
 

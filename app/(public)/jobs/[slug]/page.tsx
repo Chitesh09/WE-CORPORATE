@@ -8,6 +8,7 @@ import { JobCard } from "@/components/domains/jobs/job-card";
 import { JobShareButton } from "@/components/domains/jobs/job-share-button";
 import { JobSaveButton } from "@/components/domains/jobs/job-save-button";
 import { JobSkillMatch } from "@/components/domains/jobs/job-skill-match";
+import { JobSalaryBenchmarkCard } from "@/components/domains/salary/job-salary-benchmark-card";
 import { ApplyModal } from "@/components/domains/applications/apply-modal";
 import { JobJsonLd } from "@/components/domains/jobs/job-jsonld";
 import { Card, CardContent } from "@/components/ui/card";
@@ -169,6 +170,18 @@ export default async function JobDetailPage({ params }: JobDetailPageProps) {
                   <span className="font-bold text-brand-primary mt-0.5 block">{compensationDisplay}</span>
                 </div>
               </div>
+
+              {/* Dynamic India Salary Benchmark Card */}
+              <JobSalaryBenchmarkCard
+                job={{
+                  title: job.title,
+                  city: job.city,
+                  experienceLevel: job.experienceLevel,
+                  minCompensation: job.minCompensation,
+                  maxCompensation: job.maxCompensation,
+                  compensationType: job.compensationType,
+                }}
+              />
 
               {/* 1. Role Overview */}
               <div className="space-y-3">
